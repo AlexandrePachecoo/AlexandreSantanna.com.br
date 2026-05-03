@@ -140,37 +140,79 @@
         });
     }
 
-    // ========== Form submit ==========
+    // ========== Form submit (chama o endpoint /api/generate que usa gpt-image-1) ==========
     const form = document.getElementById("presente-form");
-    const success = document.getElementById("form-success");
+    const loadingBox = document.getElementById("form-loading");
+    const errorBox = document.getElementById("form-error");
+    const errorMsg = document.getElementById("form-error-msg");
+    const resultBox = document.getElementById("form-result");
+    const resultImage = document.getElementById("result-image");
+    const resultDownload = document.getElementById("result-download");
+
+    const setSubmitting = (btn, isLoading) => {
+        if (!btn) return;
+        btn.disabled = isLoading;
+        btn.innerHTML = isLoading
+            ? 'Gerando sua arte…'
+            : 'Gerar meu presente com IA <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+    };
+
+    const showError = msg => {
+        if (!errorBox) return;
+        if (errorMsg) errorMsg.textContent = msg || "Tente novamente em instantes.";
+        errorBox.hidden = false;
+        errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+
+    const showResult = imageData => {
+        if (!resultBox || !resultImage) return;
+        resultImage.src = imageData;
+        if (resultDownload) resultDownload.href = imageData;
+        resultBox.hidden = false;
+        resultBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
 
     if (form) {
-        form.addEventListener("submit", e => {
+        form.addEventListener("submit", async e => {
             e.preventDefault();
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
+
             const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = "Enviando…";
+            if (errorBox) errorBox.hidden = true;
+            if (resultBox) resultBox.hidden = true;
+            if (loadingBox) loadingBox.hidden = false;
+            setSubmitting(submitBtn, true);
+
+            try {
+                const fd = new FormData();
+                fd.append("nome", form.elements["nome-mae"].value || "");
+                fd.append("idade", form.elements["idade"].value || "");
+                fd.append("estilo", form.elements["estilo"].value || "ia");
+                fd.append("mensagem", form.elements["mensagem"].value || "");
+                fd.append("trilha", form.elements["trilha"].value || "narracao");
+                fd.append("email", form.elements["email"].value || "");
+                files.forEach(file => fd.append("fotos", file, file.name));
+
+                const res = await fetch("/api/generate", { method: "POST", body: fd });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    throw new Error(data.error || `Falha (HTTP ${res.status}).`);
+                }
+                if (!data.image) {
+                    throw new Error("A IA não retornou imagem.");
+                }
+                showResult(data.image);
+            } catch (err) {
+                console.error(err);
+                showError(err.message);
+            } finally {
+                if (loadingBox) loadingBox.hidden = true;
+                setSubmitting(submitBtn, false);
             }
-            // Front-end demo: future hookup to an API endpoint goes here.
-            setTimeout(() => {
-                if (success) {
-                    success.hidden = false;
-                    success.scrollIntoView({ behavior: "smooth", block: "center" });
-                }
-                form.reset();
-                files = [];
-                renderPreview();
-                if (charCount) charCount.textContent = "0";
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = 'Gerar meu presente com IA <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
-                }
-            }, 900);
         });
     }
 

@@ -1,0 +1,20 @@
+{
+  "name": "wlg-presente-dia-das-maes",
+  "version": "1.0.0",
+  "description": "Landing + backend que usa a API gpt-image-1 da OpenAI para gerar uma arte personalizada de Dia das Mães a partir de fotos e mensagem do usuário.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.77.0"
+  }
+}

@@ -641,28 +641,89 @@ h1 em, h2 em { color: var(--rose-600); font-style: italic; }
     text-align: center;
 }
 
-.form-success {
+.form-loading {
+    margin-top: 18px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    background: var(--rose-50);
+    color: var(--rose-700);
+    padding: 16px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--rose-200);
+}
+.form-loading strong { display: block; font-size: 1rem; }
+.form-loading p { margin: 2px 0 0; font-size: .9rem; color: var(--ink-500); }
+.spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--rose-200);
+    border-top-color: var(--rose-500);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.form-error {
     margin-top: 18px;
     display: flex;
     gap: 14px;
     align-items: flex-start;
-    background: #ecf9ee;
-    color: #1f6f33;
+    background: #fff1f0;
+    color: #b42318;
     padding: 16px 18px;
     border-radius: 14px;
-    border: 1px solid #c2e6c8;
+    border: 1px solid #fbcdc7;
 }
-.form-success span {
+.form-error span {
     width: 28px; height: 28px;
     border-radius: 50%;
-    background: #1f6f33;
+    background: #b42318;
     color: #fff;
     display: flex; align-items: center; justify-content: center;
     font-weight: 700;
     flex-shrink: 0;
 }
-.form-success strong { display: block; font-size: 1rem; }
-.form-success p { margin: 2px 0 0; font-size: .9rem; opacity: .9; }
+.form-error strong { display: block; font-size: 1rem; }
+.form-error p { margin: 2px 0 0; font-size: .9rem; opacity: .9; }
+
+.form-result {
+    margin-top: 18px;
+    background: var(--cream);
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    animation: pop .4s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes pop {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+.result-image-wrap {
+    background: #fff;
+    padding: 12px;
+}
+.result-image-wrap img {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+}
+.result-actions {
+    padding: 18px 20px;
+    text-align: center;
+}
+.result-actions strong {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    color: var(--rose-700);
+    display: block;
+    margin-bottom: 4px;
+}
+.result-actions p {
+    margin: 0 0 14px;
+    font-size: .92rem;
+    color: var(--ink-500);
+}
 
 /* ====== FAQ ====== */
 .faq {

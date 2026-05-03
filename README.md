@@ -1,38 +1,80 @@
 # Presente de Dia das Mães com IA · WLG Distribuidora
 
-Landing page para o projeto da WLG Distribuidora que usa Inteligência Artificial para criar um presente único de Dia das Mães.
+Landing page + backend que usa a API **`gpt-image-1`** da OpenAI para gerar uma arte personalizada de Dia das Mães a partir das fotos e da mensagem do usuário.
 
-## Como funciona o produto
+## Como funciona
 
-1. O usuário sobe até **10 fotos**.
-2. Escreve um texto ou preenche os campos (nome, idade, mensagem).
-3. A IA gera **uma arte com título** e composição harmoniosa.
-4. A IA gera um **vídeo** com as imagens.
-5. A IA **narra a mensagem** ou aplica uma trilha instrumental.
+1. O usuário sobe até **10 fotos** (drag-and-drop com preview).
+2. Preenche nome, idade, estilo da arte e mensagem.
+3. O backend chama `openai.images.edit` com o modelo `gpt-image-1`, passando as fotos como referência e um prompt construído a partir do formulário.
+4. A imagem (PNG base64) volta para o front e aparece na tela com botão de download.
+
+> Próximos passos: encadear geração de vídeo + narração TTS e cobrança.
 
 ## Stack
 
-Site estático leve, sem dependências de build:
+- **Front:** HTML/CSS/JS estáticos (sem build).
+- **Back:** Node 20+, Express, Multer e o SDK oficial `openai`.
 
-- `index.html` · estrutura
-- `styles.css` · tema Dia das Mães (paleta rosê / creme), responsivo
-- `script.js` · contador regressivo, upload com drag-and-drop, formulário, animações
-
-## Rodar localmente
-
-Basta abrir o `index.html` no navegador, ou servir com qualquer HTTP server estático:
+## Setup
 
 ```bash
-python3 -m http.server 8000
-# acesse http://localhost:8000
+# 1. instalar dependências
+npm install
+
+# 2. configurar a chave
+cp .env.example .env
+# edite .env e coloque sua OPENAI_API_KEY
+
+# 3. rodar
+npm run dev
+# abra http://localhost:3000
 ```
 
-## Próximos passos
+### Variáveis de ambiente
 
-- Conectar o formulário a um endpoint que dispare o pipeline da IA.
-- Integrar geração de imagem (ex.: GPT image / DALL·E) para a arte com título.
-- Integrar geração de vídeo + narração TTS.
-- Pagamento e envio do presente final por e-mail.
+| Variável               | Default        | Descrição                                       |
+|------------------------|----------------|-------------------------------------------------|
+| `OPENAI_API_KEY`       | —              | **Obrigatório.** https://platform.openai.com    |
+| `OPENAI_IMAGE_MODEL`   | `gpt-image-1`  | Permite trocar para outro modelo de imagem.     |
+| `PORT`                 | `3000`         | Porta do servidor.                              |
+
+## Endpoint
+
+### `POST /api/generate`
+
+`multipart/form-data` com:
+
+- `nome` (obrigatório) — nome da mãe
+- `idade` — número
+- `estilo` — `aquarela` · `polaroid` · `minimalista` · `ia`
+- `mensagem` — texto até 500 caracteres
+- `trilha` — `narracao` ou `musica` (usado pelo passo de vídeo, ainda não conectado)
+- `fotos` — até 10 imagens (`image/*`)
+
+**Resposta 200:**
+
+```json
+{
+  "image": "data:image/png;base64,...",
+  "prompt": "...",
+  "model": "gpt-image-1",
+  "usedReferences": 4
+}
+```
+
+## Estrutura
+
+```
+.
+├── index.html       # landing
+├── styles.css       # tema rosê/creme + estados de loading/erro/resultado
+├── script.js        # upload, validação, chamada ao /api/generate
+├── server.js        # Express + integração com gpt-image-1
+├── package.json
+├── .env.example
+└── .gitignore
+```
 
 ## Contato
 
