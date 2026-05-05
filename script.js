@@ -156,21 +156,37 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = "Enviando…";
             }
-            // Front-end demo: future hookup to an API endpoint goes here.
-            setTimeout(() => {
-                if (success) {
-                    success.hidden = false;
-                    success.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            // Construir FormData com os campos e fotos
+            const formData = new FormData(form);
+            files.forEach(file => formData.append('fotos', file));
+
+            // Enviar para o backend
+            const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+            fetch(`${apiUrl}/api/pedido`, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.checkoutUrl) {
+                    // Redirecionar para checkout do AbacatePay
+                    window.location.href = data.checkoutUrl;
+                } else if (data.error) {
+                    alert(`Erro: ${data.error}`);
+                    throw new Error(data.error);
+                } else {
+                    throw new Error('Resposta inesperada do servidor');
                 }
-                form.reset();
-                files = [];
-                renderPreview();
-                if (charCount) charCount.textContent = "0";
+            })
+            .catch(err => {
+                console.error('Erro ao enviar formulário:', err);
+                alert(`Erro ao processar seu pedido: ${err.message}`);
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Gerar meu presente com IA <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
                 }
-            }, 900);
+            });
         });
     }
 
