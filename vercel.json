@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 60
+    },
+    "api/inngest.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 300,
+      "includeFiles": "node_modules/ffmpeg-static/**"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/purge",
+      "schedule": "0 4 * * *"
+    }
+  ]
+}

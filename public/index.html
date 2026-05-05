@@ -265,17 +265,23 @@
                         <label for="email">Seu e-mail para receber o presente</label>
                         <input type="email" id="email" name="email" placeholder="voce@email.com" required>
                     </div>
+                    <div class="form-row">
+                        <label class="checkbox" for="lgpd">
+                            <input type="checkbox" id="lgpd" name="lgpd" required>
+                            <span>Aceito que minhas fotos e mensagem sejam usadas apenas para gerar este presente. As mídias são apagadas em até 30 dias.</span>
+                        </label>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-block">
-                        Gerar meu presente com IA
+                        Pagar e gerar meu presente
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </button>
-                    <p class="form-foot">Ao enviar, você concorda em compartilhar suas fotos apenas para a geração do presente.</p>
+                    <p class="form-foot">Pagamento seguro via Mercado Pago · Pix ou cartão. Após o pagamento, você é levado(a) à página do pedido.</p>
 
                     <div class="form-loading" id="form-loading" hidden>
                         <div class="spinner"></div>
                         <div>
-                            <strong>Nossa IA está pintando o seu presente…</strong>
-                            <p>Pode levar alguns segundos. Não feche essa janela.</p>
+                            <strong>Subindo suas fotos…</strong>
+                            <p>Não feche essa janela.</p>
                         </div>
                     </div>
 
@@ -284,20 +290,6 @@
                         <div>
                             <strong>Algo deu errado.</strong>
                             <p id="form-error-msg">Tente novamente em instantes.</p>
-                        </div>
-                    </div>
-
-                    <div class="form-result" id="form-result" hidden>
-                        <div class="result-image-wrap">
-                            <img id="result-image" alt="Arte gerada pela IA">
-                        </div>
-                        <div class="result-actions">
-                            <strong>Pronto! Sua arte está aqui ♥</strong>
-                            <p>Salve a imagem ou envie ao seu e-mail. Em breve geramos também o vídeo narrado.</p>
-                            <a id="result-download" class="btn btn-primary" download="presente-dia-das-maes.png" href="#">
-                                Baixar imagem
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            </a>
                         </div>
                     </div>
                 </form>

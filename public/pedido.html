@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Seu presente · WLG Distribuidora</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="brand">
+                <span class="brand-mark">WLG</span>
+                <span class="brand-tag">Distribuidora</span>
+            </a>
+            <a href="/" class="btn btn-ghost btn-sm">Voltar</a>
+        </div>
+    </header>
+
+    <main class="section">
+        <div class="container order-page">
+            <div class="order-status" id="status">
+                <div class="spinner"></div>
+                <div>
+                    <h1 id="status-title">Localizando seu pedido…</h1>
+                    <p id="status-sub">Só um instante.</p>
+                </div>
+            </div>
+
+            <div class="order-art" id="art-card" hidden>
+                <h2>Sua arte ficou pronta ♥</h2>
+                <div class="result-image-wrap">
+                    <img id="art-image" alt="Arte gerada">
+                </div>
+                <a id="art-download" class="btn btn-ghost" download="arte-dia-das-maes.png" href="#">Baixar arte</a>
+            </div>
+
+            <div class="order-video" id="video-card" hidden>
+                <h2>Seu vídeo está pronto ♥</h2>
+                <video id="video-player" controls playsinline></video>
+
+                <div class="video-window" id="video-window">
+                    <div class="video-window-row">
+                        <a id="video-download" class="btn btn-primary" download="presente-dia-das-maes.mp4" href="#">
+                            Baixar vídeo
+                        </a>
+                        <div class="video-countdown" aria-live="polite">
+                            Disponível por mais <strong id="video-countdown-num">15:00</strong>
+                        </div>
+                    </div>
+                    <p class="muted">Depois desse tempo, o vídeo não fica mais disponível aqui no site. Mandamos uma cópia também para o seu e-mail.</p>
+                </div>
+            </div>
+
+            <div class="order-expired" id="video-expired" hidden>
+                <h3>A janela de download do vídeo expirou.</h3>
+                <p>Enviamos uma cópia para o e-mail informado no pedido. Se não achar, confira a caixa de spam.</p>
+            </div>
+
+            <div class="order-error" id="error-card" hidden>
+                <h3>Algo deu errado.</h3>
+                <p id="error-msg">Entre em contato pelo telefone <a href="tel:+555130656655">51 3065-6655</a>.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            <div class="container">
+                <span>© 2026 WLG Distribuidora</span>
+                <span>Feito com ♥ para todas as mães</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="pedido.js"></script>
+</body>
+</html>
