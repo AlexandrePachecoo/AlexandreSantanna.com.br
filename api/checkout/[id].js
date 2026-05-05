@@ -1,5 +1,5 @@
 import { getOrder, setPayment } from "../../lib/db.js";
-import { createPreference } from "../../lib/mercadopago.js";
+import { createBilling } from "../../lib/abacatepay.js";
 import { check } from "../../lib/ratelimit.js";
 
 export default async function handler(req, res) {
@@ -18,8 +18,12 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Suba ao menos uma foto antes de pagar." });
         }
 
-        const { checkoutUrl, preferenceId } = await createPreference(order.id, order.email);
-        await setPayment(order.id, preferenceId, "awaiting_payment");
+        const { checkoutUrl, billingId } = await createBilling({
+            orderId: order.id,
+            email: order.email,
+            nome: order.nome,
+        });
+        await setPayment(order.id, billingId, "awaiting_payment");
         return res.status(200).json({ checkoutUrl });
     } catch (err) {
         console.error("[checkout]", err);

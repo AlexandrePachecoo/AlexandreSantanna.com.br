@@ -6,7 +6,7 @@ Produto sazonal serverless da WLG: a pessoa sobe até 10 fotos, escreve uma mens
 
 ```
 Browser → /api/orders/create → /api/orders/upload (Vercel Blob) → /api/checkout
-   → Mercado Pago Checkout → webhook → dispara Inngest
+   → AbacatePay (Pix) → webhook → dispara Inngest
    → [arte gpt-image-1] → [áudio gpt-4o-mini-tts ou trilha local] → [vídeo ffmpeg Ken Burns]
    → e-mail (Resend) + janela de 15 min no site
 ```
@@ -19,7 +19,7 @@ Browser → /api/orders/create → /api/orders/upload (Vercel Blob) → /api/che
 | Storage | Vercel Blob |
 | DB | Vercel Postgres (Neon) |
 | Fila | Inngest |
-| Pagamento | Mercado Pago Checkout Pro |
+| Pagamento | AbacatePay (Pix) |
 | E-mail | Resend |
 | Imagem | OpenAI `gpt-image-1` |
 | Voz | OpenAI `gpt-4o-mini-tts` |
@@ -35,7 +35,8 @@ npm install
 # 2. configurar .env
 cp .env.example .env
 #    → preencher OPENAI_API_KEY, BLOB_READ_WRITE_TOKEN, POSTGRES_URL,
-#      MP_ACCESS_TOKEN, RESEND_API_KEY, INNGEST_*, UPSTASH_*
+#      ABACATE_API_KEY, ABACATE_WEBHOOK_SECRET, RESEND_API_KEY,
+#      INNGEST_*, UPSTASH_*
 
 # 3. migração Postgres
 psql "$POSTGRES_URL" -f migrations/0001_orders.sql
@@ -54,8 +55,8 @@ npm run inngest      # worker Inngest local
 | `/api/orders/create` | POST | Cria pedido `draft`. Body JSON `{nome, email, idade, estilo, mensagem, trilha, lgpd}`. Retorna `{id}`. |
 | `/api/orders/upload` | POST | Handler oficial do Vercel Blob client upload (uso interno do front). |
 | `/api/orders/[id]` | GET | Estado do pedido. Inclui `videoUrl` e `videoSecondsLeft` somente se `now < videoExpiresAt`. |
-| `/api/checkout/[id]` | POST | Cria preferência Mercado Pago, retorna `{checkoutUrl}`. |
-| `/api/payments/webhook` | POST | Webhook MP, valida assinatura HMAC e dispara o job Inngest. |
+| `/api/checkout/[id]` | POST | Cria cobrança Pix no AbacatePay, retorna `{checkoutUrl}`. |
+| `/api/payments/webhook` | POST | Webhook AbacatePay (`?webhookSecret=…`), dispara o job Inngest em `billing.paid`. |
 | `/api/inngest` | GET/POST | Endpoint do Inngest. |
 | `/api/cron/purge` | GET | Cron diário que apaga blobs e zera dados de pedidos > 30 dias (LGPD). |
 
@@ -78,7 +79,7 @@ Configurar no dashboard Vercel:
 - Integrations: Vercel Blob + Vercel Postgres + Upstash Redis + Inngest.
 - Cron: já declarado em `vercel.json` (`/api/cron/purge` 04:00 UTC).
 - Resend: domínio `wlgdistribuidora.com.br` verificado (SPF + DKIM).
-- Mercado Pago: webhook apontando para `https://<domínio>/api/payments/webhook`.
+- AbacatePay: cadastrar webhook em `https://<domínio>/api/payments/webhook?webhookSecret=<ABACATE_WEBHOOK_SECRET>` (o segredo vai como query param).
 
 ## Estrutura
 
@@ -102,7 +103,7 @@ Configurar no dashboard Vercel:
 │   ├── video.js           # buildSlideshow (ffmpeg Ken Burns)
 │   ├── db.js              # Postgres helpers
 │   ├── blob.js            # Vercel Blob helpers + handleClientUpload
-│   ├── mercadopago.js     # createPreference + verifyWebhookSignature
+│   ├── abacatepay.js      # createBilling (Pix) + verifyWebhook + parseWebhook
 │   ├── email.js           # Resend template
 │   └── ratelimit.js       # Upstash sliding window
 ├── inngest/

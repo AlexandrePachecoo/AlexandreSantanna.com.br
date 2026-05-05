@@ -1,4 +1,4 @@
-import { fetchPayment, verifyWebhookSignature } from "../../lib/mercadopago.js";
+import { verifyWebhook, parseWebhook } from "../../lib/abacatepay.js";
 import { getOrder, setPayment } from "../../lib/db.js";
 import { Inngest } from "inngest";
 
@@ -10,29 +10,27 @@ export default async function handler(req, res) {
         return res.status(405).end();
     }
     try {
-        const body = req.body || {};
-        if (!verifyWebhookSignature(req, body)) {
-            return res.status(401).json({ error: "Assinatura inválida." });
+        if (!verifyWebhook(req)) {
+            return res.status(401).json({ error: "webhookSecret inválido." });
         }
 
-        // O webhook do MP traz {action, type, data:{id}} para diferentes eventos.
-        const type = body.type || body.topic;
-        const dataId = body?.data?.id;
-        if (type !== "payment" || !dataId) return res.status(200).json({ ignored: true });
-
-        const payment = await fetchPayment(dataId);
-        const orderId = payment?.external_reference;
-        if (!orderId) return res.status(200).json({ ignored: "sem external_reference" });
+        const { event, orderId, billingId, status } = parseWebhook(req.body || {});
+        if (!orderId) return res.status(200).json({ ignored: "sem externalId" });
 
         const order = await getOrder(orderId);
         if (!order) return res.status(404).json({ error: "Pedido não encontrado." });
 
-        const status = payment.status; // approved, pending, rejected, refunded...
-        if (status === "approved" && order.status !== "paid" && order.status !== "art_ready" && order.status !== "video_ready") {
-            await setPayment(orderId, String(payment.id), "paid");
+        const isPaid = event === "billing.paid" || status === "PAID";
+        const isFailed = event === "billing.expired" || event === "billing.cancelled" ||
+                         status === "EXPIRED" || status === "CANCELLED";
+
+        const alreadyProgressing = ["paid", "art_ready", "video_ready"].includes(order.status);
+
+        if (isPaid && !alreadyProgressing) {
+            await setPayment(orderId, billingId || order.payment_id, "paid");
             await inngest.send({ name: "presente/generate", data: { orderId } });
-        } else if (status === "rejected") {
-            await setPayment(orderId, String(payment.id), "failed");
+        } else if (isFailed && !alreadyProgressing) {
+            await setPayment(orderId, billingId || order.payment_id, "failed");
         }
 
         return res.status(200).json({ ok: true });
