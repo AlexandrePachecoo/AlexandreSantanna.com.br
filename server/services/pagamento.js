@@ -60,19 +60,11 @@ export function validarWebhookSecret(req) {
 export async function consultarCobranca(chargeId) {
   if (!chargeId) return null;
   try {
-    const response = await abacatepayApi.get('/billing/get', {
-      params: { id: chargeId },
-      timeout: 5000,
-    });
-    const billing = response.data?.data;
+    const response = await abacatepayApi.get('/billing/list', { timeout: 8000 });
+    const list = response.data?.data || [];
+    const billing = list.find(b => b.id === chargeId);
     if (!billing) return null;
-    const status = billing.status;
-    const isPaid =
-      status === 'PAID' ||
-      status === 'COMPLETED' ||
-      status === 'CONFIRMED' ||
-      billing.paid === true;
-    return { status, isPaid };
+    return { status: billing.status, isPaid: billing.status === 'PAID' };
   } catch (err) {
     console.error('[consultarCobranca] erro:', err.response?.status, err.message);
     return null;
