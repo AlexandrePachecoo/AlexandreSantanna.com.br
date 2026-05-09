@@ -41,18 +41,32 @@ export default async function handler(req, res) {
     }
 
     await updatePedido(id, { status: 'processando' });
-    const arteUrl = await gerarArte({ pedido });
+
+    const LIMITE_MS = 55_000;
+    const arteUrl = await Promise.race([
+      gerarArte({ pedido }),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(Object.assign(new Error('timeout_geracao'), { retriable: true })),
+          LIMITE_MS,
+        ),
+      ),
+    ]);
+
     await updatePedido(id, { status: 'entregue', arte_url: arteUrl });
 
     apagarFotos(pedido.fotos_urls).catch(() => {});
 
     return res.status(200).json({ success: true, arteUrl });
   } catch (err) {
-    console.error(`[processar ${id}] erro:`, err);
+    console.error(`[processar ${id}] erro:`, err.message);
     if (pedido) {
+      // On timeout reset to pago so the retry loop in status.js can pick it up again.
+      // On any other error mark as erro so the user sees the error screen.
+      const novoStatus = err.retriable ? 'pago' : 'erro';
       await updatePedido(id, {
-        status: 'erro',
-        erro_mensagem: err.message?.slice(0, 500),
+        status: novoStatus,
+        ...(novoStatus === 'erro' ? { erro_mensagem: err.message?.slice(0, 500) } : {}),
       }).catch(() => {});
     }
     return res.status(500).json({ error: err.message });
