@@ -47,7 +47,12 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.SUPABASE_URL;
     await fetch(`${supabaseUrl}/functions/v1/gerar-arte`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // Required by the Supabase API gateway — it verifies the JWT before
+        // the function runs, regardless of any check inside index.ts.
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
       body: JSON.stringify({ pedidoId: id }),
     }).catch((err) => console.error('[processar->edge] err:', err.message));
   } catch (err) {
