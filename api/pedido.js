@@ -1,57 +1,6 @@
-import Busboy from 'busboy';
 import { criarPedido } from '../server/services/pedido.js';
 
-export const config = {
-  api: { bodyParser: false },
-};
-
 const MAX_FILES = 5;
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-
-function parseMultipart(req) {
-  return new Promise((resolve, reject) => {
-    const bb = Busboy({
-      headers: req.headers,
-      limits: { files: MAX_FILES, fileSize: MAX_FILE_SIZE },
-    });
-    const fields = {};
-    const files = [];
-    let fileError = null;
-
-    bb.on('field', (name, value) => {
-      fields[name] = value;
-    });
-
-    bb.on('file', (name, stream, info) => {
-      if (name !== 'fotos' || !info.mimeType?.startsWith('image/')) {
-        stream.resume();
-        return;
-      }
-      const chunks = [];
-      stream.on('data', (c) => chunks.push(c));
-      stream.on('limit', () => {
-        fileError = new Error(`Arquivo ${info.filename} excede ${MAX_FILE_SIZE} bytes`);
-      });
-      stream.on('end', () => {
-        if (!fileError) {
-          files.push({
-            filename: info.filename,
-            mimeType: info.mimeType,
-            buffer: Buffer.concat(chunks),
-          });
-        }
-      });
-    });
-
-    bb.on('error', reject);
-    bb.on('close', () => {
-      if (fileError) reject(fileError);
-      else resolve({ fields, files });
-    });
-
-    req.pipe(bb);
-  });
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -60,20 +9,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { fields, files } = await parseMultipart(req);
-    const nomeMae = fields['nome-mae'];
-    const email = fields.email;
-    const nomeCliente = fields['seu-nome'];
-    const cpf = (fields.cpf || '').replace(/\D/g, '');
-    const celular = fields.celular;
+    const body = req.body || {};
+    const nomeMae = body['nome-mae'] || body.nomeMae;
+    const email = body.email;
+    const nomeCliente = body['seu-nome'] || body.nomeCliente;
+    const cpf = (body.cpf || '').replace(/\D/g, '');
+    const celular = body.celular;
+    const fotosPaths = Array.isArray(body.fotosPaths) ? body.fotosPaths : [];
 
-    if (!nomeMae || !email || !nomeCliente || !cpf || !celular || files.length === 0) {
+    if (!nomeMae || !email || !nomeCliente || !cpf || !celular || fotosPaths.length === 0) {
       return res.status(400).json({
         error: 'Campos obrigatórios: nome-mae, seu-nome, email, cpf, celular e pelo menos uma foto',
       });
     }
     if (cpf.length !== 11) {
       return res.status(400).json({ error: 'CPF inválido' });
+    }
+    if (fotosPaths.length > MAX_FILES) {
+      return res.status(400).json({ error: `Máximo de ${MAX_FILES} fotos` });
+    }
+    if (!fotosPaths.every(p => typeof p === 'string' && p.startsWith('uploads/'))) {
+      return res.status(400).json({ error: 'Caminhos de foto inválidos' });
     }
 
     const host = req.headers['x-forwarded-host'] || req.headers.host;
@@ -82,12 +38,12 @@ export default async function handler(req, res) {
 
     const result = await criarPedido({
       nomeMae,
-      idade: parseInt(fields.idade) || null,
-      estilo: fields.estilo || 'ia',
-      mensagem: fields.mensagem || '',
-      trilha: fields.trilha || 'narracao',
+      idade: parseInt(body.idade) || null,
+      estilo: body.estilo || 'ia',
+      mensagem: body.mensagem || '',
+      trilha: body.trilha || 'narracao',
       email,
-      fotos: files,
+      fotosPaths,
       nomeCliente,
       cpf,
       celular,
