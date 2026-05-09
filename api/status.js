@@ -38,6 +38,14 @@ export default async function handler(req, res) {
       }
     }
 
+    if (pedido.status === 'processando') {
+      const updatedAt = pedido.updated_at ? new Date(pedido.updated_at).getTime() : 0;
+      const ageMs = Date.now() - updatedAt;
+      if (ageMs > 90_000) {
+        dispararProcessar(req, id);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       status: pedido.status,

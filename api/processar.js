@@ -29,8 +29,15 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Pedido não encontrado' });
     }
 
-    if (pedido.status === 'entregue' || pedido.status === 'processando') {
+    if (pedido.status === 'entregue') {
       return res.status(200).json({ success: true, idempotent: true });
+    }
+    if (pedido.status === 'processando') {
+      const ageMs = Date.now() - new Date(pedido.updated_at || 0).getTime();
+      if (ageMs < 90_000) {
+        return res.status(200).json({ success: true, idempotent: true });
+      }
+      // Stuck > 90s (likely Vercel timeout): fall through and retry
     }
 
     await updatePedido(id, { status: 'processando' });
