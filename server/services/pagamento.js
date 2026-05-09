@@ -8,9 +8,11 @@ const abacatepayApi = axios.create({
   },
 });
 
-export async function criarCobranca({ pedidoId, email, nomeCliente, cpf, celular, valor, frontendUrl }) {
+export async function criarCobranca({ pedidoId, email, nomeCliente, valor, frontendUrl }) {
   if (!frontendUrl) throw new Error('frontendUrl é obrigatório para returnUrl/completionUrl do AbacatePay');
 
+  // CPF e celular são coletados pelo próprio AbacatePay no checkout — por isso
+  // não enviamos esses campos no customer aqui.
   const response = await abacatepayApi.post('/billing/create', {
     frequency: 'ONE_TIME',
     methods: ['PIX'],
@@ -26,8 +28,6 @@ export async function criarCobranca({ pedidoId, email, nomeCliente, cpf, celular
     customer: {
       name: nomeCliente,
       email,
-      cellphone: celular,
-      taxId: cpf,
     },
     metadata: { pedido_id: pedidoId },
   });
