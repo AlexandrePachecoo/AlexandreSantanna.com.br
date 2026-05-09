@@ -11,6 +11,7 @@ yarn-error.log*
 
 # Temporary files
 /server/temp/
+supabase/.temp/
 *.tmp
 *.log
 

@@ -14,8 +14,9 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: 'Método não permitido' }), { status: 405 });
   }
 
-  const processar_secret = Deno.env.get('PROCESSAR_SECRET');
-  if (!processar_secret || req.headers.get('x-secret') !== processar_secret) {
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const authHeader = req.headers.get('Authorization');
+  if (!serviceRoleKey || authHeader !== `Bearer ${serviceRoleKey}`) {
     return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401 });
   }
 
