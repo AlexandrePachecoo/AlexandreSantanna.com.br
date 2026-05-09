@@ -47,10 +47,7 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.SUPABASE_URL;
     await fetch(`${supabaseUrl}/functions/v1/gerar-arte`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pedidoId: id }),
     }).catch((err) => console.error('[processar->edge] err:', err.message));
   } catch (err) {
