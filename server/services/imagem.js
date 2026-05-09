@@ -22,8 +22,10 @@ export async function gerarArte({ pedido }) {
   const { id, nome_mae, idade, estilo, mensagem, fotos_urls } = pedido;
   const estiloDescricao = estilosPrompt[estilo] || estilosPrompt.ia;
 
+  const MAX_FOTOS = 3;
+  const fotosParaUsar = (fotos_urls || []).slice(0, MAX_FOTOS);
   const fotosFiles = await Promise.all(
-    (fotos_urls || []).map(async (path, i) => {
+    fotosParaUsar.map(async (path, i) => {
       const buffer = await downloadFoto(path);
       return toFile(buffer, `foto-${i + 1}.png`, { type: 'image/png' });
     })
