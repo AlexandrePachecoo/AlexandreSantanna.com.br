@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  if (!validarWebhookSecret(req.query)) {
+  if (!validarWebhookSecret(req)) {
     console.warn('[webhook] secret inválido');
     return res.status(401).json({ error: 'Não autorizado' });
   }

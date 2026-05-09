@@ -43,8 +43,38 @@ export async function criarCobranca({ pedidoId, email, nomeCliente, cpf, celular
   };
 }
 
-export function validarWebhookSecret(query) {
+export function validarWebhookSecret(req) {
   const expected = process.env.ABACATEPAY_WEBHOOK_SECRET;
   if (!expected) return false;
-  return query?.webhookSecret === expected;
+
+  const fromQuery = req?.query?.webhookSecret;
+  const headers = req?.headers || {};
+  const fromHeader =
+    headers['x-webhook-secret'] ||
+    headers['x-abacatepay-secret'] ||
+    headers['webhook-secret'];
+
+  return fromQuery === expected || fromHeader === expected;
+}
+
+export async function consultarCobranca(chargeId) {
+  if (!chargeId) return null;
+  try {
+    const response = await abacatepayApi.get('/billing/get', {
+      params: { id: chargeId },
+      timeout: 5000,
+    });
+    const billing = response.data?.data;
+    if (!billing) return null;
+    const status = billing.status;
+    const isPaid =
+      status === 'PAID' ||
+      status === 'COMPLETED' ||
+      status === 'CONFIRMED' ||
+      billing.paid === true;
+    return { status, isPaid };
+  } catch (err) {
+    console.error('[consultarCobranca] erro:', err.response?.status, err.message);
+    return null;
+  }
 }
