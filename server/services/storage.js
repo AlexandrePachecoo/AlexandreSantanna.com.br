@@ -25,6 +25,24 @@ export async function uploadFotos(fotos, pedidoId) {
   return paths;
 }
 
+export async function criarUploadUrls(uploadId, files) {
+  const out = [];
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const safeExt = (f.name || '').split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const ext = ['jpg', 'jpeg', 'png', 'webp'].includes(safeExt) ? safeExt : 'jpg';
+    const path = `uploads/${uploadId}/foto-${i + 1}.${ext}`;
+
+    const { data, error } = await supabase.storage
+      .from(BUCKET_FOTOS)
+      .createSignedUploadUrl(path);
+
+    if (error) throw error;
+    out.push({ signedUrl: data.signedUrl, path, token: data.token });
+  }
+  return out;
+}
+
 export async function downloadFoto(path) {
   const { data, error } = await supabase.storage
     .from(BUCKET_FOTOS)

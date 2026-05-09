@@ -219,22 +219,81 @@
                 return;
             }
 
-            if (submitBtn) submitBtn.textContent = "Enviando…";
+            if (submitBtn) submitBtn.textContent = "Enviando fotos…";
 
-            const formData = new FormData(form);
-            compressed.forEach(file => formData.append("fotos", file));
+            // 1. Pega URLs assinadas pra subir direto ao Supabase (evita limite do Vercel).
+            let uploadInfo;
+            try {
+                const r = await fetch("/api/upload-urls", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        files: compressed.map(f => ({ name: f.name, mimeType: f.type })),
+                    }),
+                });
+                if (!r.ok) {
+                    const t = await r.text();
+                    let msg;
+                    try { msg = JSON.parse(t).error || t; } catch { msg = `Erro ${r.status} ao iniciar upload`; }
+                    throw new Error(msg);
+                }
+                uploadInfo = await r.json();
+            } catch (err) {
+                console.error("Erro ao pegar URLs de upload:", err);
+                alert(`Erro ao iniciar upload: ${err.message}`);
+                restoreBtn();
+                return;
+            }
+
+            // 2. Sobe cada foto direto pro Supabase via PUT.
+            try {
+                await Promise.all(compressed.map((file, i) => {
+                    const target = uploadInfo.files[i];
+                    return fetch(target.signedUrl, {
+                        method: "PUT",
+                        headers: { "Content-Type": file.type, "x-upsert": "true" },
+                        body: file,
+                    }).then(resp => {
+                        if (!resp.ok) throw new Error(`Falha ao enviar foto ${i + 1} (${resp.status})`);
+                    });
+                }));
+            } catch (err) {
+                console.error("Erro no upload pro Supabase:", err);
+                alert(`Erro ao enviar fotos: ${err.message}`);
+                restoreBtn();
+                return;
+            }
+
+            if (submitBtn) submitBtn.textContent = "Finalizando…";
+
+            // 3. Cria o pedido com os caminhos das fotos já enviadas.
+            const fotosPaths = uploadInfo.files.map(f => f.path);
+            const payload = {
+                "nome-mae": form.querySelector('[name="nome-mae"]')?.value || "",
+                "seu-nome": form.querySelector('[name="seu-nome"]')?.value || "",
+                email: form.querySelector('[name="email"]')?.value || "",
+                cpf: form.querySelector('[name="cpf"]')?.value || "",
+                celular: form.querySelector('[name="celular"]')?.value || "",
+                idade: form.querySelector('[name="idade"]')?.value || "",
+                estilo: form.querySelector('[name="estilo"]')?.value || "ia",
+                mensagem: form.querySelector('[name="mensagem"]')?.value || "",
+                trilha: form.querySelector('[name="trilha"]')?.value || "narracao",
+                fotosPaths,
+            };
 
             try {
-                const res = await fetch("/api/pedido", { method: "POST", body: formData });
+                const res = await fetch("/api/pedido", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
                 if (!res.ok) {
                     const text = await res.text();
                     let message;
                     try {
                         message = JSON.parse(text).error || text;
                     } catch {
-                        message = res.status === 413
-                            ? "Suas fotos ficaram grandes demais. Tente fotos menores ou em menor quantidade."
-                            : `Erro ${res.status} ao processar seu pedido. Tente novamente em instantes.`;
+                        message = `Erro ${res.status} ao processar seu pedido. Tente novamente em instantes.`;
                     }
                     throw new Error(message);
                 }
