@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-secret': process.env.PROCESSAR_SECRET || '',
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
       },
       body: JSON.stringify({ pedidoId: id }),
     }).catch((err) => console.error('[processar->edge] err:', err.message));
