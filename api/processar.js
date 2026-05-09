@@ -39,9 +39,13 @@ export default async function handler(req, res) {
 
     await updatePedido(id, { status: 'processando' });
 
-    // Fire-and-forget: the Edge Function handles the long-running work (up to 150s)
+    // Send response immediately so the client isn't kept waiting
+    res.status(200).json({ success: true, queued: true });
+
+    // Await the fetch AFTER responding to ensure the request reaches Supabase
+    // before the Vercel process terminates (Edge Function runs independently)
     const supabaseUrl = process.env.SUPABASE_URL;
-    fetch(`${supabaseUrl}/functions/v1/gerar-arte`, {
+    await fetch(`${supabaseUrl}/functions/v1/gerar-arte`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,8 +53,6 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({ pedidoId: id }),
     }).catch((err) => console.error('[processar->edge] err:', err.message));
-
-    return res.status(200).json({ success: true, queued: true });
   } catch (err) {
     console.error(`[processar ${id}] erro:`, err.message);
     return res.status(500).json({ error: err.message });
