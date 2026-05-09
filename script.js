@@ -162,7 +162,6 @@
 
     // ========== Form submit ==========
     const form = document.getElementById("presente-form");
-    const success = document.getElementById("form-success");
 
     if (form) {
         form.addEventListener("submit", async e => {
