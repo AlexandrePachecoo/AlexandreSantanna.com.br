@@ -51,6 +51,23 @@
         });
     }
 
+    // ========== Input masks (CPF + cellphone) ==========
+    const maskCPF = v => v.replace(/\D/g, "").slice(0, 11)
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+    const maskPhone = v => {
+        const d = v.replace(/\D/g, "").slice(0, 11);
+        if (d.length <= 10) return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
+        return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
+    };
+
+    const cpfInput = document.getElementById("cpf");
+    if (cpfInput) cpfInput.addEventListener("input", e => { e.target.value = maskCPF(e.target.value); });
+    const phoneInput = document.getElementById("celular");
+    if (phoneInput) phoneInput.addEventListener("input", e => { e.target.value = maskPhone(e.target.value); });
+
     // ========== Photo upload (drag & drop + preview) ==========
     const MAX_FILES = 5;
     const dropzone = document.getElementById("dropzone");

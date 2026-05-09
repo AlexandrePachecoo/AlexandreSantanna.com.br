@@ -8,20 +8,38 @@ const abacatepayApi = axios.create({
   },
 });
 
-export async function criarCobranca({ pedidoId, email, nomeMae, valor }) {
-  const frontend = process.env.FRONTEND_URL || '';
-  const response = await abacatepayApi.post('/charges', {
-    customer: { email, name: nomeMae },
-    amount: valor,
-    type: 'pix',
-    description: `Presente de Dia das Mães - Pedido #${pedidoId}`,
+export async function criarCobranca({ pedidoId, email, nomeCliente, cpf, celular, valor, frontendUrl }) {
+  if (!frontendUrl) throw new Error('frontendUrl é obrigatório para returnUrl/completionUrl do AbacatePay');
+
+  const response = await abacatepayApi.post('/billing/create', {
+    frequency: 'ONE_TIME',
+    methods: ['PIX'],
+    products: [{
+      externalId: pedidoId,
+      name: 'Presente de Dia das Mães com IA',
+      description: `Pedido ${pedidoId}`,
+      quantity: 1,
+      price: valor,
+    }],
+    returnUrl: `${frontendUrl}/`,
+    completionUrl: `${frontendUrl}/sucesso.html?id=${pedidoId}`,
+    customer: {
+      name: nomeCliente,
+      email,
+      cellphone: celular,
+      taxId: cpf,
+    },
     metadata: { pedido_id: pedidoId },
-    return_url: `${frontend}/sucesso.html?id=${pedidoId}`,
   });
 
+  const billing = response.data?.data;
+  if (!billing?.url || !billing?.id) {
+    throw new Error('Resposta inesperada do AbacatePay: ' + JSON.stringify(response.data));
+  }
+
   return {
-    checkoutUrl: response.data.checkout_url,
-    chargeId: response.data.id,
+    checkoutUrl: billing.url,
+    chargeId: billing.id,
   };
 }
 

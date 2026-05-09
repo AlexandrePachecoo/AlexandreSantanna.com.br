@@ -2,7 +2,7 @@ import { criarPedido as dbCriarPedido, updatePedido } from '../db.js';
 import { uploadFotos } from './storage.js';
 import { criarCobranca } from './pagamento.js';
 
-export async function criarPedido({ nomeMae, idade, estilo, mensagem, trilha, email, fotos }) {
+export async function criarPedido({ nomeMae, idade, estilo, mensagem, trilha, email, fotos, nomeCliente, cpf, celular, frontendUrl }) {
   const pedido = await dbCriarPedido({
     email,
     nome_mae: nomeMae,
@@ -18,8 +18,11 @@ export async function criarPedido({ nomeMae, idade, estilo, mensagem, trilha, em
   const { checkoutUrl, chargeId } = await criarCobranca({
     pedidoId: pedido.id,
     email,
-    nomeMae,
+    nomeCliente,
+    cpf,
+    celular,
     valor: parseInt(process.env.PRODUCT_PRICE) || 1500,
+    frontendUrl,
   });
 
   await updatePedido(pedido.id, {

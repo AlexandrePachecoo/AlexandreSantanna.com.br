@@ -1,5 +1,5 @@
 import { validarWebhookSecret } from '../server/services/pagamento.js';
-import { getPedido, updatePedido } from '../server/db.js';
+import { getPedido, getPedidoByChargeId, updatePedido } from '../server/db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -15,20 +15,22 @@ export default async function handler(req, res) {
   const body = req.body || {};
   const event = body.event;
   const data = body.data || {};
-  const pedidoId = data.metadata?.pedido_id;
-
-  if (!pedidoId) {
-    return res.status(400).json({ error: 'pedido_id ausente no metadata' });
-  }
 
   if (event !== 'charge.completed' && event !== 'charge.confirmed' && event !== 'billing.paid') {
     return res.status(200).json({ success: true, ignored: event });
   }
 
   try {
-    const pedido = await getPedido(pedidoId);
+    let pedidoId = data.metadata?.pedido_id || data.metadata?.metadata?.pedido_id;
+    let pedido = pedidoId ? await getPedido(pedidoId) : null;
+
+    if (!pedido && data.id) {
+      pedido = await getPedidoByChargeId(data.id);
+      pedidoId = pedido?.id;
+    }
+
     if (!pedido) {
-      console.error(`[webhook] pedido ${pedidoId} não encontrado`);
+      console.error(`[webhook] pedido não encontrado (metadata=${JSON.stringify(data.metadata)}, charge=${data.id})`);
       return res.status(404).json({ error: 'Pedido não encontrado' });
     }
 

@@ -63,12 +63,22 @@ export default async function handler(req, res) {
     const { fields, files } = await parseMultipart(req);
     const nomeMae = fields['nome-mae'];
     const email = fields.email;
+    const nomeCliente = fields['seu-nome'];
+    const cpf = (fields.cpf || '').replace(/\D/g, '');
+    const celular = fields.celular;
 
-    if (!nomeMae || !email || files.length === 0) {
+    if (!nomeMae || !email || !nomeCliente || !cpf || !celular || files.length === 0) {
       return res.status(400).json({
-        error: 'Campos obrigatórios: nome-mae, email e pelo menos uma foto',
+        error: 'Campos obrigatórios: nome-mae, seu-nome, email, cpf, celular e pelo menos uma foto',
       });
     }
+    if (cpf.length !== 11) {
+      return res.status(400).json({ error: 'CPF inválido' });
+    }
+
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const proto = req.headers['x-forwarded-proto'] || 'https';
+    const frontendUrl = process.env.FRONTEND_URL || `${proto}://${host}`;
 
     const result = await criarPedido({
       nomeMae,
@@ -78,6 +88,10 @@ export default async function handler(req, res) {
       trilha: fields.trilha || 'narracao',
       email,
       fotos: files,
+      nomeCliente,
+      cpf,
+      celular,
+      frontendUrl,
     });
 
     return res.status(200).json({
