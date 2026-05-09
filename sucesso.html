@@ -138,8 +138,11 @@
                 },
             };
 
+            const MAX_POLLS = 36;
+            const MAX_NETWORK_FAILS = 60;
             let pollHandle = null;
             let pollCount = 0;
+            let networkFails = 0;
 
             const renderEntregue = (arteUrl) => {
                 if (pollHandle) clearInterval(pollHandle);
@@ -177,11 +180,25 @@
                 if (meta) meta.textContent = `Pedido: ${pedidoId}`;
             };
 
+            const renderTimeout = () => {
+                if (pollHandle) clearInterval(pollHandle);
+                card.innerHTML = `
+                    <div class="error-icon">!</div>
+                    <h1>Estamos demorando mais do que o esperado</h1>
+                    <p class="lead">Seu pagamento pode já ter sido processado, mas não conseguimos confirmar a tempo. Anote o número do pedido e fale com a gente — vamos finalizar manualmente.</p>
+                    <div class="status-actions">
+                        <a href="/" class="btn btn-ghost">Voltar para o início</a>
+                    </div>
+                    <p class="status-meta">Pedido: <strong>${pedidoId}</strong></p>
+                `;
+            };
+
             const poll = async () => {
                 pollCount++;
                 try {
                     const res = await fetch(`/api/status?id=${encodeURIComponent(pedidoId)}`);
                     const data = await res.json();
+                    networkFails = 0;
                     if (!data.success) {
                         renderErro(data.error || "Pedido não encontrado.");
                         return;
@@ -195,9 +212,13 @@
                         return;
                     }
                     renderProgresso(data.status);
+                    if (pollCount >= MAX_POLLS) {
+                        renderTimeout();
+                    }
                 } catch (err) {
                     console.error("Erro no polling:", err);
-                    if (pollCount > 60) {
+                    networkFails++;
+                    if (networkFails > MAX_NETWORK_FAILS) {
                         renderErro("Não conseguimos verificar o status. Tente recarregar a página.");
                     }
                 }

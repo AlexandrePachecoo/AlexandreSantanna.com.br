@@ -6,6 +6,12 @@
     },
     "api/pedido.js": {
       "maxDuration": 30
+    },
+    "api/status.js": {
+      "maxDuration": 15
+    },
+    "api/webhook.js": {
+      "maxDuration": 30
     }
   }
 }
