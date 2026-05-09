@@ -10,8 +10,7 @@ export async function criarPedido(dados) {
       nome_mae: dados.nome_mae,
       idade: dados.idade,
       estilo: dados.estilo,
-      mensagem: dados.mensagem,
-      trilha: dados.trilha,
+      tamanho: dados.tamanho,
       fotos_urls: dados.fotos_urls,
       status: 'pendente_pagamento',
     })

@@ -11,16 +11,21 @@ function getOpenAI() {
 }
 
 const estilosPrompt = {
-  'mosaico-classico': 'colagem em mosaico clássico, fotos organizadas em grade harmoniosa com molduras delicadas, toques florais entre as fotos, paleta rosa pastel, dourado e creme',
-  'polaroid-scrapbook': 'colagem estilo scrapbook com fotos em formato polaroid sobreposto, fundo de papel envelhecido com flores secas e fitas, sensação de álbum afetivo de família',
-  'coracao-floral': 'fotos compostas formando um grande coração, cercado por flores rosa e brancas em aquarela, tipografia delicada e romântica',
-  'moldura-unica': 'as fotos integradas em uma única moldura artística com flores, tons de rosa e dourado, composição emocional de Dia das Mães',
-  ia: 'colagem artística harmoniosa de Dia das Mães, combinando as fotos com elementos florais, tons rosa pastel e dourado',
+  'colagem-revista': 'colagem editorial estilo revista, recortes de fotos sobrepostos com bordas irregulares, manchetes tipográficas variadas, fitas adesivas, marca-textos e elementos gráficos retrô, paleta vibrante com toques de rosa e dourado',
+  'capa-revista': 'capa de revista de moda profissional, foto principal em destaque ocupando o fundo, logotipo grande no topo, manchetes laterais com chamadas, código de barras e data, tipografia elegante e contemporânea',
+  album: 'página de álbum afetivo de família, fotos coladas em papel envelhecido com cantoneiras, anotações à mão, flores secas e fitas, sensação nostálgica e delicada',
+  polaroid: 'composição de fotos no formato Polaroid, levemente sobrepostas e inclinadas, sombra suave sobre fundo claro de tecido ou madeira, com pequenas anotações feitas à mão na parte branca da Polaroid',
+};
+
+const tamanhos = {
+  post: { size: '1024x1024', descricao: 'formato quadrado de post de Instagram (1:1)' },
+  story: { size: '1024x1536', descricao: 'formato vertical de Story de Instagram (9:16)' },
 };
 
 export async function gerarArte({ pedido }) {
-  const { id, nome_mae, idade, estilo, mensagem, fotos_urls } = pedido;
-  const estiloDescricao = estilosPrompt[estilo] || estilosPrompt.ia;
+  const { id, nome_mae, idade, estilo, tamanho, fotos_urls } = pedido;
+  const estiloDescricao = estilosPrompt[estilo] || estilosPrompt['colagem-revista'];
+  const tamanhoConfig = tamanhos[tamanho] || tamanhos.post;
 
   const MAX_FOTOS = 3;
   const fotosParaUsar = (fotos_urls || []).slice(0, MAX_FOTOS);
@@ -35,18 +40,17 @@ export async function gerarArte({ pedido }) {
     throw new Error('Nenhuma foto disponível para a colagem');
   }
 
-  const prompt = `Crie uma arte comemorativa de Dia das Mães em estilo ${estiloDescricao}.
-Componha as fotos enviadas (Imagem 1 até Imagem ${fotosFiles.length} são fotos da família) em uma colagem afetiva e emocional.
-Inclua o nome "${nome_mae}"${idade ? ` (${idade} anos)` : ''} em tipografia elegante e a frase: "${mensagem || 'Feliz Dia das Mães'}".
-Paleta: rosas suaves, dourado e creme. Composição harmoniosa, qualidade de presente impresso em alta resolução.
-Não inclua nenhum outro texto além do nome e da frase.`;
+  const prompt = `Crie uma arte comemorativa de Dia das Mães no estilo ${estiloDescricao}, no ${tamanhoConfig.descricao}.
+Componha as fotos enviadas (Imagem 1 até Imagem ${fotosFiles.length} são fotos da família) de forma afetiva e emocional.
+Inclua apenas o nome "${nome_mae}"${idade ? ` (${idade} anos)` : ''} em tipografia elegante coerente com o estilo.
+Não escreva nenhuma mensagem, frase ou texto adicional além do nome.`;
 
   const client = getOpenAI();
   const response = await client.images.edit({
     model: 'gpt-image-2',
     image: fotosFiles,
     prompt,
-    size: '1024x1024',
+    size: tamanhoConfig.size,
     quality: 'medium',
   });
 

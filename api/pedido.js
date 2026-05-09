@@ -13,17 +13,12 @@ export default async function handler(req, res) {
     const nomeMae = body['nome-mae'] || body.nomeMae;
     const email = body.email;
     const nomeCliente = body['seu-nome'] || body.nomeCliente;
-    const cpf = (body.cpf || '').replace(/\D/g, '');
-    const celular = body.celular;
     const fotosPaths = Array.isArray(body.fotosPaths) ? body.fotosPaths : [];
 
-    if (!nomeMae || !email || !nomeCliente || !cpf || !celular || fotosPaths.length === 0) {
+    if (!nomeMae || !email || !nomeCliente || fotosPaths.length === 0) {
       return res.status(400).json({
-        error: 'Campos obrigatórios: nome-mae, seu-nome, email, cpf, celular e pelo menos uma foto',
+        error: 'Campos obrigatórios: nome-mae, seu-nome, email e pelo menos uma foto',
       });
-    }
-    if (cpf.length !== 11) {
-      return res.status(400).json({ error: 'CPF inválido' });
     }
     if (fotosPaths.length > MAX_FILES) {
       return res.status(400).json({ error: `Máximo de ${MAX_FILES} fotos` });
@@ -39,14 +34,11 @@ export default async function handler(req, res) {
     const result = await criarPedido({
       nomeMae,
       idade: parseInt(body.idade) || null,
-      estilo: body.estilo || 'ia',
-      mensagem: body.mensagem || '',
-      trilha: body.trilha || 'narracao',
+      estilo: body.estilo || 'colagem-revista',
+      tamanho: body.tamanho || 'post',
       email,
       fotosPaths,
       nomeCliente,
-      cpf,
-      celular,
       frontendUrl,
     });
 

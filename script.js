@@ -42,32 +42,6 @@
     tick();
     setInterval(tick, 1000);
 
-    // ========== Character counter ==========
-    const mensagem = document.getElementById("mensagem");
-    const charCount = document.getElementById("char-count");
-    if (mensagem && charCount) {
-        mensagem.addEventListener("input", () => {
-            charCount.textContent = mensagem.value.length;
-        });
-    }
-
-    // ========== Input masks (CPF + cellphone) ==========
-    const maskCPF = v => v.replace(/\D/g, "").slice(0, 11)
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-
-    const maskPhone = v => {
-        const d = v.replace(/\D/g, "").slice(0, 11);
-        if (d.length <= 10) return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
-        return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
-    };
-
-    const cpfInput = document.getElementById("cpf");
-    if (cpfInput) cpfInput.addEventListener("input", e => { e.target.value = maskCPF(e.target.value); });
-    const phoneInput = document.getElementById("celular");
-    if (phoneInput) phoneInput.addEventListener("input", e => { e.target.value = maskPhone(e.target.value); });
-
     // ========== Photo upload (drag & drop + preview) ==========
     const MAX_FILES = 5;
     const dropzone = document.getElementById("dropzone");
@@ -201,7 +175,7 @@
             const restoreBtn = () => {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = 'Gerar meu presente com IA <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+                    submitBtn.innerHTML = 'Continuar para o pagamento <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
                 }
             };
             if (submitBtn) {
@@ -272,12 +246,9 @@
                 "nome-mae": form.querySelector('[name="nome-mae"]')?.value || "",
                 "seu-nome": form.querySelector('[name="seu-nome"]')?.value || "",
                 email: form.querySelector('[name="email"]')?.value || "",
-                cpf: form.querySelector('[name="cpf"]')?.value || "",
-                celular: form.querySelector('[name="celular"]')?.value || "",
                 idade: form.querySelector('[name="idade"]')?.value || "",
-                estilo: form.querySelector('[name="estilo"]')?.value || "ia",
-                mensagem: form.querySelector('[name="mensagem"]')?.value || "",
-                trilha: form.querySelector('[name="trilha"]')?.value || "narracao",
+                estilo: form.querySelector('[name="estilo"]')?.value || "colagem-revista",
+                tamanho: form.querySelector('[name="tamanho"]')?.value || "post",
                 fotosPaths,
             };
 

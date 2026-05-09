@@ -59,20 +59,21 @@
                             <input type="number" id="idade" name="idade" min="1" max="120" placeholder="60">
                         </div>
                         <div>
-                            <label for="estilo">Estilo da colagem</label>
+                            <label for="estilo">Estilo da arte</label>
                             <select id="estilo" name="estilo">
-                                <option value="mosaico-classico">Mosaico Clássico</option>
-                                <option value="polaroid-scrapbook">Polaroid Scrapbook</option>
-                                <option value="coracao-floral">Coração Floral</option>
-                                <option value="moldura-unica">Moldura Única</option>
-                                <option value="ia">Deixar a IA escolher</option>
+                                <option value="colagem-revista">Colagem de Revista</option>
+                                <option value="capa-revista">Capa de Revista</option>
+                                <option value="album">Álbum</option>
+                                <option value="polaroid">Polaroid</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label for="mensagem">O que você quer dizer pra ela?</label>
-                        <textarea id="mensagem" name="mensagem" rows="4" maxlength="500" placeholder="Conte uma lembrança, faça uma declaração, agradeça..."></textarea>
-                        <span class="form-hint"><span id="char-count">0</span>/500 caracteres</span>
+                        <label for="tamanho">Formato da arte</label>
+                        <select id="tamanho" name="tamanho">
+                            <option value="post">Post Instagram (quadrado)</option>
+                            <option value="story">Story Instagram (vertical)</option>
+                        </select>
                     </div>
                     <div class="form-row">
                         <label for="fotos">Suas fotos <span class="muted">(até 5)</span></label>
@@ -88,24 +89,14 @@
                     </div>
                     <div class="form-row">
                         <label for="seu-nome">Seu nome</label>
-                        <input type="text" id="seu-nome" name="seu-nome" placeholder="Como aparece no seu CPF" autocomplete="name" required>
+                        <input type="text" id="seu-nome" name="seu-nome" placeholder="Como você quer ser chamado" autocomplete="name" required>
                     </div>
                     <div class="form-row">
                         <label for="email">Seu e-mail para receber o presente</label>
                         <input type="email" id="email" name="email" placeholder="voce@email.com" autocomplete="email" required>
                     </div>
-                    <div class="form-row form-row-2">
-                        <div>
-                            <label for="cpf">CPF</label>
-                            <input type="text" id="cpf" name="cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" autocomplete="off" required>
-                        </div>
-                        <div>
-                            <label for="celular">Celular</label>
-                            <input type="tel" id="celular" name="celular" inputmode="numeric" placeholder="(11) 99999-9999" maxlength="15" autocomplete="tel" required>
-                        </div>
-                    </div>
                     <button type="submit" class="btn btn-primary btn-block">
-                        Gerar meu presente com IA
+                        Continuar para o pagamento
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </button>
                     <p class="form-foot">Ao enviar, você concorda em compartilhar suas fotos apenas para a geração do presente.</p>
@@ -155,8 +146,8 @@
                         <div class="step-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
                         </div>
-                        <h3>Escreva sua mensagem</h3>
-                        <p>Conte o nome, a idade e o que você quer dizer para ela.</p>
+                        <h3>Escolha o estilo</h3>
+                        <p>Conte o nome dela, a idade e escolha o estilo e o formato da arte.</p>
                     </article>
                     <article class="step">
                         <span class="step-num">3</span>
@@ -180,18 +171,18 @@
                 <div class="examples">
                     <article class="example example-1">
                         <div class="example-art"><span>✿</span></div>
-                        <h4>Mosaico Clássico</h4>
-                        <p>Suas fotos organizadas em uma grade harmoniosa, com toques florais e o nome dela em destaque.</p>
+                        <h4>Colagem de Revista</h4>
+                        <p>Recortes sobrepostos com tipografia de revista, fitas e elementos gráficos no melhor estilo editorial.</p>
                     </article>
                     <article class="example example-2">
                         <div class="example-art"><span>★</span></div>
-                        <h4>Polaroid Scrapbook</h4>
-                        <p>Recortes em estilo polaroid sobre fundo de papel, sensação de álbum afetivo de família.</p>
+                        <h4>Capa de Revista</h4>
+                        <p>Sua mãe é a estrela da capa, com manchete e chamadas que celebram a história dela.</p>
                     </article>
                     <article class="example example-3">
                         <div class="example-art"><span>♥</span></div>
-                        <h4>Coração Floral</h4>
-                        <p>Suas fotos compondo um grande coração, cercado por flores e tipografia delicada.</p>
+                        <h4>Álbum &amp; Polaroid</h4>
+                        <p>Páginas afetivas de álbum ou polaroides delicadas, no clima das memórias de família.</p>
                     </article>
                 </div>
             </div>
