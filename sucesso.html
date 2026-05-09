@@ -143,6 +143,7 @@
             let pollHandle = null;
             let pollCount = 0;
             let networkFails = 0;
+            let timedOut = false;
 
             const renderEntregue = (arteUrl) => {
                 if (pollHandle) clearInterval(pollHandle);
@@ -173,19 +174,24 @@
             };
 
             const renderProgresso = (status) => {
+                if (timedOut) return;
                 const copy = COPY[status] || COPY.pago;
-                document.getElementById("status-title").textContent = copy.title;
-                document.getElementById("status-message").textContent = copy.msg;
+                const titleEl = document.getElementById("status-title");
+                const msgEl = document.getElementById("status-message");
+                if (titleEl) titleEl.textContent = copy.title;
+                if (msgEl) msgEl.textContent = copy.msg;
                 const meta = document.getElementById("status-meta");
                 if (meta) meta.textContent = `Pedido: ${pedidoId}`;
             };
 
             const renderTimeout = () => {
-                if (pollHandle) clearInterval(pollHandle);
+                if (timedOut) return;
+                timedOut = true;
+                // Keep polling in background — backend may still complete the art
                 card.innerHTML = `
                     <div class="error-icon">!</div>
                     <h1>Estamos demorando mais do que o esperado</h1>
-                    <p class="lead">Seu pagamento pode já ter sido processado, mas não conseguimos confirmar a tempo. Anote o número do pedido e fale com a gente — vamos finalizar manualmente.</p>
+                    <p class="lead">Continuamos tentando gerar sua arte em segundo plano. Aguarde mais alguns minutos — a página vai atualizar sozinha quando estiver pronta.</p>
                     <div class="status-actions">
                         <a href="/" class="btn btn-ghost">Voltar para o início</a>
                     </div>
