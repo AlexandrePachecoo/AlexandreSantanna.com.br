@@ -157,50 +157,98 @@
         });
     }
 
+    // ========== Image compression (keep payload under Vercel's ~4.5MB limit) ==========
+    const MAX_DIMENSION = 1600;
+    const JPEG_QUALITY = 0.85;
+    const SKIP_COMPRESSION_BELOW = 800 * 1024; // 800KB
+
+    const compressImage = async (file) => {
+        if (file.size < SKIP_COMPRESSION_BELOW) return file;
+        let bitmap;
+        try {
+            bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+        } catch {
+            bitmap = await createImageBitmap(file);
+        }
+        const ratio = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+        const w = Math.round(bitmap.width * ratio);
+        const h = Math.round(bitmap.height * ratio);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(bitmap, 0, 0, w, h);
+        bitmap.close?.();
+        const blob = await new Promise((resolve, reject) => {
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error("Falha ao comprimir imagem")), "image/jpeg", JPEG_QUALITY);
+        });
+        const base = file.name.replace(/\.[^.]+$/, "");
+        return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+    };
+
     // ========== Form submit ==========
     const form = document.getElementById("presente-form");
     const success = document.getElementById("form-success");
 
     if (form) {
-        form.addEventListener("submit", e => {
+        form.addEventListener("submit", async e => {
             e.preventDefault();
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
             const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = "Enviando…";
-            }
-
-            const formData = new FormData(form);
-            files.forEach(file => formData.append('fotos', file));
-
-            fetch('/api/pedido', {
-                method: 'POST',
-                body: formData,
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.checkoutUrl) {
-                    // Redirecionar para checkout do AbacatePay
-                    window.location.href = data.checkoutUrl;
-                } else if (data.error) {
-                    alert(`Erro: ${data.error}`);
-                    throw new Error(data.error);
-                } else {
-                    throw new Error('Resposta inesperada do servidor');
-                }
-            })
-            .catch(err => {
-                console.error('Erro ao enviar formulário:', err);
-                alert(`Erro ao processar seu pedido: ${err.message}`);
+            const restoreBtn = () => {
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Gerar meu presente com IA <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
                 }
-            });
+            };
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Otimizando fotos…";
+            }
+
+            let compressed;
+            try {
+                compressed = await Promise.all(files.map(compressImage));
+            } catch (err) {
+                console.error("Erro ao comprimir fotos:", err);
+                alert("Não conseguimos preparar suas fotos. Tente outras imagens.");
+                restoreBtn();
+                return;
+            }
+
+            if (submitBtn) submitBtn.textContent = "Enviando…";
+
+            const formData = new FormData(form);
+            compressed.forEach(file => formData.append("fotos", file));
+
+            try {
+                const res = await fetch("/api/pedido", { method: "POST", body: formData });
+                if (!res.ok) {
+                    const text = await res.text();
+                    let message;
+                    try {
+                        message = JSON.parse(text).error || text;
+                    } catch {
+                        message = res.status === 413
+                            ? "Suas fotos ficaram grandes demais. Tente fotos menores ou em menor quantidade."
+                            : `Erro ${res.status} ao processar seu pedido. Tente novamente em instantes.`;
+                    }
+                    throw new Error(message);
+                }
+                const data = await res.json();
+                if (data.success && data.checkoutUrl) {
+                    window.location.href = data.checkoutUrl;
+                    return;
+                }
+                throw new Error(data.error || "Resposta inesperada do servidor");
+            } catch (err) {
+                console.error("Erro ao enviar formulário:", err);
+                alert(`Erro ao processar seu pedido: ${err.message}`);
+                restoreBtn();
+            }
         });
     }
 
