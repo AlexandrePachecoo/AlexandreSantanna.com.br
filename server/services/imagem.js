@@ -1,92 +1,59 @@
-import OpenAI from 'openai';
-import { supabase } from '../config/supabase.js';
-import fs from 'fs';
-import path from 'path';
+import OpenAI, { toFile } from 'openai';
+import { downloadFoto, uploadArte } from './storage.js';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openai = null;
 
-const estilosPrompt = {
-  aquarela: 'Estilo aquarela romântica com tons pastéis suaves, flores delicadas e textura aquosa. Cores dominantes: rosa claro, rosa pálido, creme e ouro.',
-  polaroid: 'Estilo retrô polaroid com bordas brancas, textura envelhecida e sensação nostálgica de álbum de família. Cores vintage e ligeiramente desbotadas.',
-  minimalista: 'Estilo moderno e minimalista com composição limpa, tipografia elegante, linhas simples e foco na mensagem. Paleta: branco, tons de rosa e ouro.',
-  ia: 'Estilo artístico que combina elementos românticos com modernidade, harmonia visual equilibrada.',
-};
-
-export async function gerarArte({ nomeMae, idade, estilo, mensagem, fotosUrls }) {
-  try {
-    const estiloDescricao = estilosPrompt[estilo] || estilosPrompt.ia;
-
-    // Construir prompt para a IA
-    const prompt = `
-Crie uma arte de presente de Dia das Mães altamente emocional e personalizada:
-
-Destinatário: ${nomeMae}${idade ? ` (${idade} anos)` : ''}
-Estilo visual: ${estiloDescricao}
-Mensagem: "${mensagem}"
-
-Requisitos:
-1. Incluir o título: "Para ${nomeMae}, com amor ♥"
-2. Incorporar a essência emocional da mensagem visual
-3. Composição harmoniosa que sugira foto, família e amor
-4. Cores quentes e reconfortantes
-5. Dimensão ideal: 1080x1920px (vertical para mobile)
-6. Arte deve parecer genuína e tocante, não genérica
-
-A arte será impressa em alta resolução para emoldurar.
-Crie uma imagem que würde fazer uma mãe chorar de emoção.
-`;
-
-    // Chamar GPT Image 2 (DALL-E 3) via OpenAI
-    const response = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt: prompt,
-      n: 1,
-      size: '1024x1024', // DALL-E 3 suporta 1024x1024, 1792x1024, 1024x1792
-      quality: 'hd',
-      style: 'vivid',
-    });
-
-    if (!response.data || response.data.length === 0) {
-      throw new Error('Nenhuma imagem foi gerada pela IA');
-    }
-
-    const imageUrl = response.data[0].url;
-
-    // Baixar a imagem gerada
-    const imageBuffer = await downloadImage(imageUrl);
-
-    // Salvar no Supabase Storage
-    const timestamp = Date.now();
-    const filename = `arte-pedidos/${nomeMae}-${timestamp}.png`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('arte')
-      .upload(filename, imageBuffer, {
-        contentType: 'image/png',
-      });
-
-    if (uploadError) {
-      throw new Error(`Erro ao salvar arte: ${uploadError.message}`);
-    }
-
-    // Gerar URL pública
-    const { data: publicUrl } = supabase.storage
-      .from('arte')
-      .getPublicUrl(filename);
-
-    return publicUrl.publicUrl;
-  } catch (err) {
-    console.error('Erro ao gerar arte com GPT Image 2:', err);
-    throw err;
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
+  return openai;
 }
 
-async function downloadImage(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Erro ao fazer download da imagem: ${response.statusText}`);
+const estilosPrompt = {
+  'mosaico-classico': 'colagem em mosaico clássico, fotos organizadas em grade harmoniosa com molduras delicadas, toques florais entre as fotos, paleta rosa pastel, dourado e creme',
+  'polaroid-scrapbook': 'colagem estilo scrapbook com fotos em formato polaroid sobreposto, fundo de papel envelhecido com flores secas e fitas, sensação de álbum afetivo de família',
+  'coracao-floral': 'fotos compostas formando um grande coração, cercado por flores rosa e brancas em aquarela, tipografia delicada e romântica',
+  'moldura-unica': 'as fotos integradas em uma única moldura artística com flores, tons de rosa e dourado, composição emocional de Dia das Mães',
+  ia: 'colagem artística harmoniosa de Dia das Mães, combinando as fotos com elementos florais, tons rosa pastel e dourado',
+};
+
+export async function gerarArte({ pedido }) {
+  const { id, nome_mae, idade, estilo, mensagem, fotos_urls } = pedido;
+  const estiloDescricao = estilosPrompt[estilo] || estilosPrompt.ia;
+
+  const fotosFiles = await Promise.all(
+    (fotos_urls || []).map(async (path, i) => {
+      const buffer = await downloadFoto(path);
+      return toFile(buffer, `foto-${i + 1}.png`, { type: 'image/png' });
+    })
+  );
+
+  if (fotosFiles.length === 0) {
+    throw new Error('Nenhuma foto disponível para a colagem');
   }
-  return Buffer.from(await response.arrayBuffer());
+
+  const prompt = `Crie uma arte comemorativa de Dia das Mães em estilo ${estiloDescricao}.
+Componha as fotos enviadas (Imagem 1 até Imagem ${fotosFiles.length} são fotos da família) em uma colagem afetiva e emocional.
+Inclua o nome "${nome_mae}"${idade ? ` (${idade} anos)` : ''} em tipografia elegante e a frase: "${mensagem || 'Feliz Dia das Mães'}".
+Paleta: rosas suaves, dourado e creme. Composição harmoniosa, qualidade de presente impresso em alta resolução.
+Não inclua nenhum outro texto além do nome e da frase.`;
+
+  const client = getOpenAI();
+  const response = await client.images.edit({
+    model: 'gpt-image-2',
+    image: fotosFiles,
+    prompt,
+    size: '1024x1024',
+    quality: 'medium',
+  });
+
+  const item = response.data?.[0];
+  if (!item) throw new Error('Modelo não retornou imagem');
+
+  const buffer = item.b64_json
+    ? Buffer.from(item.b64_json, 'base64')
+    : Buffer.from(await (await fetch(item.url)).arrayBuffer());
+
+  return await uploadArte(buffer, id);
 }

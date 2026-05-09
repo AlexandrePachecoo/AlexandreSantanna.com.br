@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Crie um presente único e emocionante para o Dia das Mães com IA. Suba suas fotos, escreva uma mensagem e receba uma arte personalizada e um vídeo narrado.">
+    <meta name="description" content="Crie um presente único para o Dia das Mães com IA. Suba até 5 fotos, escolha um estilo de colagem e receba uma arte personalizada de Dia das Mães em minutos.">
     <meta name="theme-color" content="#e8336b">
-    <title>Presente de Dia das Mães com IA · WLG Distribuidora</title>
+    <title>specialDay · Presente de Dia das Mães com IA</title>
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Presente de Dia das Mães feito com IA">
+    <meta property="og:description" content="Suba até 5 fotos, escolha um estilo de colagem e a IA gera uma arte exclusiva pra emocionar a sua mãe.">
+    <meta property="og:image" content="og-cover.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Presente de Dia das Mães feito com IA">
+    <meta name="twitter:description" content="Suba até 5 fotos, escolha um estilo de colagem e a IA gera uma arte exclusiva pra emocionar a sua mãe.">
+    <meta name="twitter:image" content="og-cover.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,93 +23,86 @@
 
     <header class="site-header">
         <div class="container header-inner">
-            <a href="#" class="brand" aria-label="WLG Distribuidora">
-                <span class="brand-mark">WLG</span>
-                <span class="brand-tag">Distribuidora</span>
+            <a href="#" class="brand" aria-label="specialDay">
+                <span class="brand-mark">special</span><span class="brand-tag">Day</span>
             </a>
             <nav class="nav">
                 <a href="#como-funciona">Como funciona</a>
                 <a href="#exemplos">Exemplos</a>
-                <a href="#criar">Criar presente</a>
-                <a href="#contato">Contato</a>
+                <a href="#faq">Dúvidas</a>
             </nav>
-            <a href="#criar" class="btn btn-primary btn-sm">Começar agora</a>
+            <a href="#criar" class="btn btn-primary btn-sm">Criar presente</a>
         </div>
     </header>
 
     <main>
 
-        <section class="hero">
-            <div class="hero-bg" aria-hidden="true">
-                <span class="blob blob-1"></span>
-                <span class="blob blob-2"></span>
-                <span class="blob blob-3"></span>
-            </div>
-            <div class="container hero-inner">
-                <div class="hero-copy">
+        <section class="section section-create-top" id="criar">
+            <div class="container">
+                <div class="section-head center">
                     <span class="badge">
                         <span class="badge-dot"></span>
                         Edição limitada · Dia das Mães 2026
                     </span>
-                    <h1>
-                        Um presente <em>único</em> para a mulher
-                        <br>mais especial do mundo.
-                    </h1>
-                    <p class="lead">
-                        Suba até <strong>10 fotos</strong>, conte um pouquinho da história
-                        e nossa <strong>inteligência artificial</strong> cria uma arte exclusiva
-                        e um vídeo narrado para emocionar a sua mãe.
-                    </p>
-                    <div class="hero-cta">
-                        <a href="#criar" class="btn btn-primary">
-                            Criar meu presente
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        </a>
-                        <a href="#como-funciona" class="btn btn-ghost">Ver como funciona</a>
-                    </div>
-                    <ul class="hero-meta">
-                        <li><strong>+1.000</strong> presentes entregues</li>
-                        <li><strong>Pronto em minutos</strong></li>
-                        <li><strong>100% personalizado</strong></li>
-                    </ul>
+                    <h1>Um presente <em>único</em> para a mãe mais especial do mundo.</h1>
+                    <p class="lead">Suba até <strong>5 fotos</strong>, escolha o estilo da colagem e a <strong>IA gera uma arte exclusiva</strong> pra emocionar a sua mãe.</p>
                 </div>
-                <div class="hero-art" aria-hidden="true">
-                    <div class="card-stack">
-                        <div class="photo-card photo-card-1">
-                            <div class="photo-placeholder ph-1"></div>
-                            <span class="heart">♥</span>
+
+                <form class="create-form create-form-center" id="presente-form" novalidate>
+                    <div class="form-row">
+                        <label for="nome-mae">Nome da sua mãe</label>
+                        <input type="text" id="nome-mae" name="nome-mae" placeholder="Ex.: Maria" required>
+                    </div>
+                    <div class="form-row form-row-2">
+                        <div>
+                            <label for="idade">Idade</label>
+                            <input type="number" id="idade" name="idade" min="1" max="120" placeholder="60">
                         </div>
-                        <div class="photo-card photo-card-2">
-                            <div class="photo-placeholder ph-2"></div>
-                        </div>
-                        <div class="photo-card photo-card-3">
-                            <div class="photo-placeholder ph-3"></div>
-                            <span class="sparkle">✦</span>
-                        </div>
-                        <div class="result-card">
-                            <div class="result-header">
-                                <span class="dot dot-r"></span>
-                                <span class="dot dot-y"></span>
-                                <span class="dot dot-g"></span>
-                                <span class="result-title">Presente.IA</span>
-                            </div>
-                            <div class="result-body">
-                                <div class="result-title-text">Para a Maria, com amor ♥</div>
-                                <div class="result-grid">
-                                    <span class="g g1"></span>
-                                    <span class="g g2"></span>
-                                    <span class="g g3"></span>
-                                    <span class="g g4"></span>
-                                </div>
-                                <div class="result-bar">
-                                    <span class="play">▶</span>
-                                    <span class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-                                    <span class="time">0:42</span>
-                                </div>
-                            </div>
+                        <div>
+                            <label for="estilo">Estilo da colagem</label>
+                            <select id="estilo" name="estilo">
+                                <option value="mosaico-classico">Mosaico Clássico</option>
+                                <option value="polaroid-scrapbook">Polaroid Scrapbook</option>
+                                <option value="coracao-floral">Coração Floral</option>
+                                <option value="moldura-unica">Moldura Única</option>
+                                <option value="ia">Deixar a IA escolher</option>
+                            </select>
                         </div>
                     </div>
-                </div>
+                    <div class="form-row">
+                        <label for="mensagem">O que você quer dizer pra ela?</label>
+                        <textarea id="mensagem" name="mensagem" rows="4" maxlength="500" placeholder="Conte uma lembrança, faça uma declaração, agradeça..."></textarea>
+                        <span class="form-hint"><span id="char-count">0</span>/500 caracteres</span>
+                    </div>
+                    <div class="form-row">
+                        <label for="fotos">Suas fotos <span class="muted">(até 5)</span></label>
+                        <div class="dropzone" id="dropzone">
+                            <input type="file" id="fotos" name="fotos" accept="image/*" multiple hidden>
+                            <div class="dropzone-empty" id="dropzone-empty">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <p><strong>Arraste suas fotos aqui</strong> ou clique para selecionar</p>
+                                <span class="muted">JPG ou PNG · até 5 fotos</span>
+                            </div>
+                            <div class="dropzone-preview" id="dropzone-preview" hidden></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="email">Seu e-mail para receber o presente</label>
+                        <input type="email" id="email" name="email" placeholder="voce@email.com" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        Gerar meu presente com IA
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </button>
+                    <p class="form-foot">Ao enviar, você concorda em compartilhar suas fotos apenas para a geração do presente.</p>
+                    <div class="form-success" id="form-success" hidden>
+                        <span>✓</span>
+                        <div>
+                            <strong>Recebemos seu pedido!</strong>
+                            <p>Sua arte será gerada em breve.</p>
+                        </div>
+                    </div>
+                </form>
             </div>
         </section>
 
@@ -124,7 +125,7 @@
             <div class="container">
                 <div class="section-head">
                     <span class="eyebrow">Como funciona</span>
-                    <h2>Em 5 passos simples, um presente que a sua mãe nunca vai esquecer.</h2>
+                    <h2>Em 3 passos simples, um presente que a sua mãe nunca vai esquecer.</h2>
                 </div>
                 <div class="steps">
                     <article class="step">
@@ -132,7 +133,7 @@
                         <div class="step-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         </div>
-                        <h3>Suba até 10 fotos</h3>
+                        <h3>Suba até 5 fotos</h3>
                         <p>Escolha as melhores fotos da sua mãe, da família, de momentos marcantes.</p>
                     </article>
                     <article class="step">
@@ -141,31 +142,15 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
                         </div>
                         <h3>Escreva sua mensagem</h3>
-                        <p>Conte o nome, a idade e o que você quer dizer. Ou deixe a IA escrever por você.</p>
+                        <p>Conte o nome, a idade e o que você quer dizer para ela.</p>
                     </article>
                     <article class="step">
                         <span class="step-num">3</span>
                         <div class="step-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5a2 2 0 0 0-2.8 0L5 21"/></svg>
                         </div>
-                        <h3>IA cria a arte exclusiva</h3>
-                        <p>Geramos uma imagem com título e composição harmoniosa, no mesmo estilo.</p>
-                    </article>
-                    <article class="step">
-                        <span class="step-num">4</span>
-                        <div class="step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                        </div>
-                        <h3>Vídeo gerado por IA</h3>
-                        <p>Um vídeo emocionante com transições suaves usando todas as imagens.</p>
-                    </article>
-                    <article class="step">
-                        <span class="step-num">5</span>
-                        <div class="step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                        </div>
-                        <h3>Narração ou música fofa</h3>
-                        <p>A IA narra a sua mensagem com voz natural ou adiciona uma trilha emocionante.</p>
+                        <h3>IA cria sua arte exclusiva</h3>
+                        <p>Geramos uma colagem única em alta resolução, pronta pra imprimir e emoldurar.</p>
                     </article>
                 </div>
             </div>
@@ -181,107 +166,24 @@
                 <div class="examples">
                     <article class="example example-1">
                         <div class="example-art"><span>✿</span></div>
-                        <h4>Aquarela Romântica</h4>
-                        <p>Tons pastéis, flores e textura suave. Ideal para mensagens delicadas.</p>
+                        <h4>Mosaico Clássico</h4>
+                        <p>Suas fotos organizadas em uma grade harmoniosa, com toques florais e o nome dela em destaque.</p>
                     </article>
                     <article class="example example-2">
                         <div class="example-art"><span>★</span></div>
-                        <h4>Memórias em Polaroid</h4>
-                        <p>Fotos retrô, recortes nostálgicos e sensação de álbum de família.</p>
+                        <h4>Polaroid Scrapbook</h4>
+                        <p>Recortes em estilo polaroid sobre fundo de papel, sensação de álbum afetivo de família.</p>
                     </article>
                     <article class="example example-3">
                         <div class="example-art"><span>♥</span></div>
-                        <h4>Moderno & Minimalista</h4>
-                        <p>Composição limpa, tipografia elegante e foco na mensagem.</p>
+                        <h4>Coração Floral</h4>
+                        <p>Suas fotos compondo um grande coração, cercado por flores e tipografia delicada.</p>
                     </article>
                 </div>
             </div>
         </section>
 
-        <section class="section section-create" id="criar">
-            <div class="container create-grid">
-                <div class="create-info">
-                    <span class="eyebrow">Crie agora</span>
-                    <h2>Faça o presente da sua mãe em <em>poucos minutos</em>.</h2>
-                    <p>Preencha o formulário com cuidado. Quanto mais detalhes, mais especial fica o resultado.</p>
-                    <ul class="check-list">
-                        <li>Entrega digital em até 24 horas</li>
-                        <li>Revisões gratuitas até você amar</li>
-                        <li>Arte em alta resolução para impressão</li>
-                        <li>Vídeo em formato vertical e horizontal</li>
-                    </ul>
-                </div>
-                <form class="create-form" id="presente-form" novalidate>
-                    <div class="form-row">
-                        <label for="nome-mae">Nome da sua mãe</label>
-                        <input type="text" id="nome-mae" name="nome-mae" placeholder="Ex.: Maria" required>
-                    </div>
-                    <div class="form-row form-row-2">
-                        <div>
-                            <label for="idade">Idade</label>
-                            <input type="number" id="idade" name="idade" min="1" max="120" placeholder="60">
-                        </div>
-                        <div>
-                            <label for="estilo">Estilo da arte</label>
-                            <select id="estilo" name="estilo">
-                                <option value="aquarela">Aquarela Romântica</option>
-                                <option value="polaroid">Memórias em Polaroid</option>
-                                <option value="minimalista">Moderno & Minimalista</option>
-                                <option value="ia">Deixar a IA escolher</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label for="mensagem">O que você quer dizer pra ela?</label>
-                        <textarea id="mensagem" name="mensagem" rows="4" maxlength="500" placeholder="Conte uma lembrança, faça uma declaração, agradeça... A IA pode te ajudar a melhorar o texto."></textarea>
-                        <span class="form-hint"><span id="char-count">0</span>/500 caracteres</span>
-                    </div>
-                    <div class="form-row">
-                        <label>Trilha do vídeo</label>
-                        <div class="radio-group">
-                            <label class="radio">
-                                <input type="radio" name="trilha" value="narracao" checked>
-                                <span>IA narrando minha mensagem</span>
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="trilha" value="musica">
-                                <span>Música fofa instrumental</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label for="fotos">Suas fotos <span class="muted">(até 10)</span></label>
-                        <div class="dropzone" id="dropzone">
-                            <input type="file" id="fotos" name="fotos" accept="image/*" multiple hidden>
-                            <div class="dropzone-empty" id="dropzone-empty">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                <p><strong>Arraste suas fotos aqui</strong> ou clique para selecionar</p>
-                                <span class="muted">JPG ou PNG · até 10 fotos</span>
-                            </div>
-                            <div class="dropzone-preview" id="dropzone-preview" hidden></div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label for="email">Seu e-mail para receber o presente</label>
-                        <input type="email" id="email" name="email" placeholder="voce@email.com" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">
-                        Gerar meu presente com IA
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                    </button>
-                    <p class="form-foot">Ao enviar, você concorda em compartilhar suas fotos apenas para a geração do presente.</p>
-                    <div class="form-success" id="form-success" hidden>
-                        <span>✓</span>
-                        <div>
-                            <strong>Recebemos seu pedido!</strong>
-                            <p>Em breve enviaremos seu presente para o e-mail informado.</p>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <section class="section section-faq">
+        <section class="section section-faq" id="faq">
             <div class="container">
                 <div class="section-head center">
                     <span class="eyebrow">Perguntas frequentes</span>
@@ -290,23 +192,19 @@
                 <div class="faq">
                     <details>
                         <summary>Quanto tempo demora para receber o presente?</summary>
-                        <p>O presente fica pronto em até 24 horas após o envio das fotos e da mensagem. Você recebe a arte e o vídeo no e-mail informado.</p>
-                    </details>
-                    <details>
-                        <summary>Posso pedir alterações depois de pronto?</summary>
-                        <p>Sim! Oferecemos revisões gratuitas até você ficar 100% satisfeito com o resultado.</p>
+                        <p>A arte fica pronta em cerca de 1 minuto após o pagamento, direto na página de confirmação.</p>
                     </details>
                     <details>
                         <summary>As fotos ficam guardadas?</summary>
-                        <p>Não. As fotos são usadas apenas para gerar o seu presente e excluídas após a entrega.</p>
+                        <p>Não. As fotos são usadas apenas para gerar o seu presente e excluídas em até 24 horas após a entrega.</p>
                     </details>
                     <details>
                         <summary>Posso imprimir a arte?</summary>
                         <p>Sim! Entregamos a arte em alta resolução, ideal para imprimir e emoldurar.</p>
                     </details>
                     <details>
-                        <summary>Como funciona o vídeo narrado?</summary>
-                        <p>Nossa IA usa uma voz natural e emocional para narrar sua mensagem ao longo do vídeo, com transições suaves entre as fotos.</p>
+                        <summary>Como recebo o presente?</summary>
+                        <p>Após o pagamento, você é redirecionado para uma página onde a arte aparece em até 1 minuto. Você baixa direto por lá.</p>
                     </details>
                 </div>
             </div>
@@ -317,37 +215,22 @@
     <footer class="site-footer" id="contato">
         <div class="container footer-inner">
             <div class="footer-brand">
-                <span class="brand-mark">WLG</span>
-                <span class="brand-tag">Distribuidora</span>
+                <span class="brand-mark">special</span><span class="brand-tag">Day</span>
                 <p>Tecnologia e emoção, lado a lado, para criar memórias inesquecíveis.</p>
-            </div>
-            <div class="footer-col">
-                <h5>Contato</h5>
-                <ul>
-                    <li><a href="tel:+555130656655">51 3065-6655</a></li>
-                    <li><a href="https://www.wlgdistribuidora.com.br" target="_blank" rel="noopener">www.wlgdistribuidora.com.br</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h5>Endereço</h5>
-                <ul>
-                    <li>Av. Nações Unidas, 369</li>
-                    <li>Bairro Rincão · Novo Hamburgo</li>
-                    <li>CEP 93310-435</li>
-                </ul>
             </div>
             <div class="footer-col">
                 <h5>Atalhos</h5>
                 <ul>
+                    <li><a href="#criar">Criar presente</a></li>
                     <li><a href="#como-funciona">Como funciona</a></li>
                     <li><a href="#exemplos">Exemplos</a></li>
-                    <li><a href="#criar">Criar presente</a></li>
+                    <li><a href="#faq">Dúvidas</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
             <div class="container">
-                <span>© 2026 WLG Distribuidora · Todos os direitos reservados</span>
+                <span>© 2026 specialDay · Todos os direitos reservados</span>
                 <span>Feito com ♥ para todas as mães</span>
             </div>
         </div>

@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/processar.js": {
+      "maxDuration": 60
+    },
+    "api/pedido.js": {
+      "maxDuration": 30
+    }
+  }
+}

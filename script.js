@@ -52,7 +52,7 @@
     }
 
     // ========== Photo upload (drag & drop + preview) ==========
-    const MAX_FILES = 10;
+    const MAX_FILES = 5;
     const dropzone = document.getElementById("dropzone");
     const input = document.getElementById("fotos");
     const empty = document.getElementById("dropzone-empty");
@@ -157,13 +157,10 @@
                 submitBtn.textContent = "Enviando…";
             }
 
-            // Construir FormData com os campos e fotos
             const formData = new FormData(form);
             files.forEach(file => formData.append('fotos', file));
 
-            // Enviar para o backend
-            const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-            fetch(`${apiUrl}/api/pedido`, {
+            fetch('/api/pedido', {
                 method: 'POST',
                 body: formData,
             })

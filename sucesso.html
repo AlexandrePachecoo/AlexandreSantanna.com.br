@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sua arte de Dia das Mães está sendo gerada.">
+    <meta name="theme-color" content="#e8336b">
+    <meta name="robots" content="noindex">
+    <title>Seu presente · specialDay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .status-wrap {
+            min-height: calc(100vh - 90px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 16px;
+        }
+        .status-card {
+            max-width: 640px;
+            width: 100%;
+            text-align: center;
+        }
+        .status-card h1 {
+            font-family: "Playfair Display", serif;
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            margin: 0 0 12px;
+            color: var(--ink);
+        }
+        .status-card p.lead {
+            color: var(--ink-soft);
+            font-size: 1.05rem;
+            margin: 0 0 24px;
+        }
+        .spinner {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 28px;
+            border-radius: 50%;
+            border: 4px solid #fde6ef;
+            border-top-color: var(--rose-500);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .arte-preview {
+            margin: 0 auto 28px;
+            max-width: 560px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(232, 51, 107, 0.18);
+        }
+        .arte-preview img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .status-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .status-meta {
+            margin-top: 20px;
+            color: var(--ink-soft);
+            font-size: 0.9rem;
+        }
+        .error-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: #fff1f1;
+            color: #c92a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="brand" aria-label="specialDay">
+                <span class="brand-mark">special</span><span class="brand-tag">Day</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="status-wrap">
+        <section class="status-card" id="status-card" aria-live="polite">
+            <div class="spinner" id="spinner"></div>
+            <h1 id="status-title">Estamos preparando seu presente...</h1>
+            <p class="lead" id="status-message">Aguardando confirmação do pagamento. Isso pode levar alguns segundos.</p>
+            <p class="status-meta" id="status-meta"></p>
+        </section>
+    </main>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const params = new URLSearchParams(window.location.search);
+            const pedidoId = params.get("id");
+            const card = document.getElementById("status-card");
+
+            if (!pedidoId) {
+                card.innerHTML = `
+                    <div class="error-icon">!</div>
+                    <h1>Pedido não encontrado</h1>
+                    <p class="lead">Link inválido. Faça um novo pedido na página inicial.</p>
+                    <div class="status-actions">
+                        <a href="/" class="btn btn-primary">Voltar para o início</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const COPY = {
+                pendente_pagamento: {
+                    title: "Aguardando confirmação do pagamento",
+                    msg: "Assim que confirmarmos o pagamento, começamos a gerar a sua arte automaticamente.",
+                },
+                pago: {
+                    title: "Pagamento confirmado!",
+                    msg: "Estamos preparando o pipeline para gerar sua arte personalizada...",
+                },
+                processando: {
+                    title: "Criando sua arte com IA...",
+                    msg: "Nosso modelo está montando a colagem com suas fotos. Isso costuma levar cerca de 1 minuto.",
+                },
+            };
+
+            let pollHandle = null;
+            let pollCount = 0;
+
+            const renderEntregue = (arteUrl) => {
+                if (pollHandle) clearInterval(pollHandle);
+                card.innerHTML = `
+                    <h1>Sua arte está pronta! ✨</h1>
+                    <p class="lead">Pode baixar e compartilhar com a sua mãe. Imprima em alta resolução pra emoldurar.</p>
+                    <div class="arte-preview">
+                        <img src="${arteUrl}" alt="Arte de Dia das Mães gerada por IA">
+                    </div>
+                    <div class="status-actions">
+                        <a href="${arteUrl}" download class="btn btn-primary">Baixar imagem</a>
+                        <a href="/" class="btn btn-ghost">Criar outro presente</a>
+                    </div>
+                `;
+            };
+
+            const renderErro = (mensagem) => {
+                if (pollHandle) clearInterval(pollHandle);
+                card.innerHTML = `
+                    <div class="error-icon">!</div>
+                    <h1>Ops, algo deu errado</h1>
+                    <p class="lead">${mensagem || "Não conseguimos gerar sua arte agora. Nosso time foi avisado e vai entrar em contato."}</p>
+                    <div class="status-actions">
+                        <a href="/" class="btn btn-primary">Tentar novamente</a>
+                    </div>
+                    <p class="status-meta">Pedido: ${pedidoId}</p>
+                `;
+            };
+
+            const renderProgresso = (status) => {
+                const copy = COPY[status] || COPY.pago;
+                document.getElementById("status-title").textContent = copy.title;
+                document.getElementById("status-message").textContent = copy.msg;
+                const meta = document.getElementById("status-meta");
+                if (meta) meta.textContent = `Pedido: ${pedidoId}`;
+            };
+
+            const poll = async () => {
+                pollCount++;
+                try {
+                    const res = await fetch(`/api/status?id=${encodeURIComponent(pedidoId)}`);
+                    const data = await res.json();
+                    if (!data.success) {
+                        renderErro(data.error || "Pedido não encontrado.");
+                        return;
+                    }
+                    if (data.status === "entregue" && data.arteUrl) {
+                        renderEntregue(data.arteUrl);
+                        return;
+                    }
+                    if (data.status === "erro") {
+                        renderErro(data.erro);
+                        return;
+                    }
+                    renderProgresso(data.status);
+                } catch (err) {
+                    console.error("Erro no polling:", err);
+                    if (pollCount > 60) {
+                        renderErro("Não conseguimos verificar o status. Tente recarregar a página.");
+                    }
+                }
+            };
+
+            poll();
+            pollHandle = setInterval(poll, 5000);
+        })();
+    </script>
+
+</body>
+</html>

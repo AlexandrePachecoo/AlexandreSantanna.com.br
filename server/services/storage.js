@@ -1,37 +1,57 @@
 import { supabase } from '../config/supabase.js';
 
-export async function uploadFotos(fotos, email) {
-  try {
-    const fotosUrls = [];
-    const timestamp = Date.now();
+const BUCKET_FOTOS = 'fotos-pedidos';
+const BUCKET_ARTE = 'arte';
 
-    for (let i = 0; i < fotos.length; i++) {
-      const file = fotos[i];
-      const ext = file.originalname.split('.').pop();
-      const filename = `${email}/${timestamp}-foto-${i + 1}.${ext}`;
+export async function uploadFotos(fotos, pedidoId) {
+  const paths = [];
 
-      // Upload para Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
-        .from('fotos-pedidos')
-        .upload(filename, file.buffer, {
-          contentType: file.mimetype,
-        });
+  for (let i = 0; i < fotos.length; i++) {
+    const foto = fotos[i];
+    const ext = (foto.filename || `foto-${i}.jpg`).split('.').pop().toLowerCase();
+    const path = `${pedidoId}/foto-${i + 1}.${ext}`;
 
-      if (uploadError) {
-        throw new Error(`Erro ao fazer upload de foto: ${uploadError.message}`);
-      }
+    const { error } = await supabase.storage
+      .from(BUCKET_FOTOS)
+      .upload(path, foto.buffer, {
+        contentType: foto.mimeType || 'image/jpeg',
+        upsert: false,
+      });
 
-      // Gerar URL pública
-      const { data: publicUrl } = supabase.storage
-        .from('fotos-pedidos')
-        .getPublicUrl(filename);
-
-      fotosUrls.push(publicUrl.publicUrl);
-    }
-
-    return fotosUrls;
-  } catch (err) {
-    console.error('Erro ao fazer upload de fotos:', err);
-    throw err;
+    if (error) throw error;
+    paths.push(path);
   }
+
+  return paths;
+}
+
+export async function downloadFoto(path) {
+  const { data, error } = await supabase.storage
+    .from(BUCKET_FOTOS)
+    .download(path);
+
+  if (error) throw error;
+  return Buffer.from(await data.arrayBuffer());
+}
+
+export async function uploadArte(buffer, pedidoId) {
+  const path = `${pedidoId}/arte.png`;
+
+  const { error } = await supabase.storage
+    .from(BUCKET_ARTE)
+    .upload(path, buffer, {
+      contentType: 'image/png',
+      upsert: true,
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from(BUCKET_ARTE).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+export async function apagarFotos(paths) {
+  if (!paths?.length) return;
+  const { error } = await supabase.storage.from(BUCKET_FOTOS).remove(paths);
+  if (error) console.error('[storage] falha ao apagar fotos:', error);
 }
