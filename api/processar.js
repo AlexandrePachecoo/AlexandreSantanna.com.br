@@ -1,9 +1,7 @@
 import { getPedido, updatePedido } from '../server/db.js';
-import { gerarArte } from '../server/services/imagem.js';
-import { apagarFotos } from '../server/services/storage.js';
 
 export const config = {
-  maxDuration: 60,
+  maxDuration: 15,
 };
 
 export default async function handler(req, res) {
@@ -22,9 +20,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Parâmetro id obrigatório' });
   }
 
-  let pedido;
   try {
-    pedido = await getPedido(id);
+    const pedido = await getPedido(id);
     if (!pedido) {
       return res.status(404).json({ error: 'Pedido não encontrado' });
     }
@@ -34,41 +31,28 @@ export default async function handler(req, res) {
     }
     if (pedido.status === 'processando') {
       const ageMs = Date.now() - new Date(pedido.updated_at || 0).getTime();
-      if (ageMs < 90_000) {
+      // Allow retry only after 150s — beyond the Supabase Edge Function timeout
+      if (ageMs < 150_000) {
         return res.status(200).json({ success: true, idempotent: true });
       }
-      // Stuck > 90s (likely Vercel timeout): fall through and retry
     }
 
     await updatePedido(id, { status: 'processando' });
 
-    const LIMITE_MS = 55_000;
-    const arteUrl = await Promise.race([
-      gerarArte({ pedido }),
-      new Promise((_, reject) =>
-        setTimeout(
-          () => reject(Object.assign(new Error('timeout_geracao'), { retriable: true })),
-          LIMITE_MS,
-        ),
-      ),
-    ]);
+    // Fire-and-forget: the Edge Function handles the long-running work (up to 150s)
+    const supabaseUrl = process.env.SUPABASE_URL;
+    fetch(`${supabaseUrl}/functions/v1/gerar-arte`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-secret': process.env.PROCESSAR_SECRET || '',
+      },
+      body: JSON.stringify({ pedidoId: id }),
+    }).catch((err) => console.error('[processar->edge] err:', err.message));
 
-    await updatePedido(id, { status: 'entregue', arte_url: arteUrl });
-
-    apagarFotos(pedido.fotos_urls).catch(() => {});
-
-    return res.status(200).json({ success: true, arteUrl });
+    return res.status(200).json({ success: true, queued: true });
   } catch (err) {
     console.error(`[processar ${id}] erro:`, err.message);
-    if (pedido) {
-      // On timeout reset to pago so the retry loop in status.js can pick it up again.
-      // On any other error mark as erro so the user sees the error screen.
-      const novoStatus = err.retriable ? 'pago' : 'erro';
-      await updatePedido(id, {
-        status: novoStatus,
-        ...(novoStatus === 'erro' ? { erro_mensagem: err.message?.slice(0, 500) } : {}),
-      }).catch(() => {});
-    }
     return res.status(500).json({ error: err.message });
   }
 }

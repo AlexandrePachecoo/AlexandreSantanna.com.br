@@ -41,7 +41,8 @@ export default async function handler(req, res) {
     if (pedido.status === 'processando') {
       const updatedAt = pedido.updated_at ? new Date(pedido.updated_at).getTime() : 0;
       const ageMs = Date.now() - updatedAt;
-      if (ageMs > 90_000) {
+      // Only retry after 150s — beyond the Supabase Edge Function timeout
+      if (ageMs > 150_000) {
         dispararProcessar(req, id);
       }
     }
