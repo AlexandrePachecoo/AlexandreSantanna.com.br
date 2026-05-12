@@ -1,5 +1,5 @@
 import { validarWebhookSecret } from '../server/services/pagamento.js';
-import { getPedido, getPedidoByChargeId, updatePedido } from '../server/db.js';
+import { getCartaBySlug, getCartaByChargeId, updateCartaBySlug } from '../server/db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -21,38 +21,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    let pedidoId = data.metadata?.pedido_id || data.metadata?.metadata?.pedido_id;
-    let pedido = pedidoId ? await getPedido(pedidoId) : null;
+    const meta = data.metadata || {};
+    const nestedMeta = meta.metadata || {};
+    const slug = meta.carta_slug || nestedMeta.carta_slug;
 
-    if (!pedido && data.id) {
-      pedido = await getPedidoByChargeId(data.id);
-      pedidoId = pedido?.id;
+    let carta = slug ? await getCartaBySlug(slug) : null;
+    if (!carta && data.id) {
+      carta = await getCartaByChargeId(data.id);
     }
 
-    if (!pedido) {
-      console.error(`[webhook] pedido não encontrado (metadata=${JSON.stringify(data.metadata)}, charge=${data.id})`);
-      return res.status(404).json({ error: 'Pedido não encontrado' });
+    if (!carta) {
+      console.error(`[webhook] carta não encontrada (metadata=${JSON.stringify(meta)}, charge=${data.id})`);
+      return res.status(404).json({ error: 'Carta não encontrada' });
     }
 
-    if (pedido.status === 'entregue' || pedido.status === 'processando') {
+    if (carta.status === 'publicada') {
       return res.status(200).json({ success: true, idempotent: true });
     }
 
-    await updatePedido(pedidoId, {
-      status: 'pago',
-      charge_id: data.id || pedido.charge_id,
+    await updateCartaBySlug(carta.slug, {
+      status: 'publicada',
+      charge_id: data.id || carta.charge_id,
     });
 
-    const host = req.headers['x-forwarded-host'] || req.headers.host;
-    const proto = req.headers['x-forwarded-proto'] || 'https';
-    const processarUrl = `${proto}://${host}/api/processar?id=${encodeURIComponent(pedidoId)}`;
-
-    fetch(processarUrl, {
-      method: 'POST',
-      headers: { 'x-secret': process.env.PROCESSAR_SECRET || '' },
-    }).catch((err) => console.error('[webhook] falha ao disparar processar:', err));
-
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, slug: carta.slug });
   } catch (err) {
     console.error('Erro em /api/webhook:', err);
     return res.status(500).json({ error: err.message });

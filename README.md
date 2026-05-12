@@ -1,38 +1,40 @@
-# Presente de Dia das Mães com IA · WLG Distribuidora
+# Carta Virtual de Dia das Mães · WLG Distribuidora
 
-Landing page para o projeto da WLG Distribuidora que usa Inteligência Artificial para criar um presente único de Dia das Mães.
+Landing page da WLG Distribuidora para criar uma **carta virtual** de Dia das Mães. O cliente monta uma carta com texto, fotos e a música favorita do Spotify; depois do pagamento PIX, recebe um link público (com QR Code) que pode ser compartilhado pelo WhatsApp ou impresso na embalagem do presente.
 
-## Como funciona o produto
+## Como funciona
 
-1. O usuário sobe até **10 fotos**.
-2. Escreve um texto ou preenche os campos (nome, idade, mensagem).
-3. A IA gera **uma arte com título** e composição harmoniosa.
-4. A IA gera um **vídeo** com as imagens.
-5. A IA **narra a mensagem** ou aplica uma trilha instrumental.
+1. Escreve a mensagem (até 2.000 caracteres).
+2. Sobe até **10 fotos**.
+3. Escolhe uma música no Spotify (busca direta no formulário).
+4. Paga via PIX (AbacatePay).
+5. Recebe um link `https://<host>/c/<slug>` + QR Code (PNG/SVG) + botão de WhatsApp pronto.
 
 ## Stack
 
-Site estático leve, sem dependências de build:
-
-- `index.html` · estrutura
-- `styles.css` · tema Dia das Mães (paleta rosê / creme), responsivo
-- `script.js` · contador regressivo, upload com drag-and-drop, formulário, animações
+- HTML/CSS/JS estáticos (sem build).
+- Vercel Functions em `api/` (Node, ESM).
+- Supabase (Postgres + Storage).
+- AbacatePay (PIX) com webhook.
+- Spotify Web API (Client Credentials, lado servidor).
+- Lib `qrcode` para gerar QR.
 
 ## Rodar localmente
 
-Basta abrir o `index.html` no navegador, ou servir com qualquer HTTP server estático:
-
 ```bash
+# Front estático (sem APIs)
 python3 -m http.server 8000
-# acesse http://localhost:8000
+
+# Com Vercel Functions (precisa de .env populado)
+npm install
+npm run dev
 ```
 
 ## Próximos passos
 
-- Conectar o formulário a um endpoint que dispare o pipeline da IA.
-- Integrar geração de imagem (ex.: GPT image / DALL·E) para a arte com título.
-- Integrar geração de vídeo + narração TTS.
-- Pagamento e envio do presente final por e-mail.
+- Painel pra o cliente acompanhar/editar cartas geradas.
+- E-mail automático com o link logo após o pagamento confirmado.
+- Métricas de visualização do link (sem perder anonimato).
 
 ## Contato
 

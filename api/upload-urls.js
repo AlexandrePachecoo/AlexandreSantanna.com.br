@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { criarUploadUrls } from '../server/services/storage.js';
 
-const MAX_FILES = 5;
+const MAX_FILES = 10;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Crie um presente único para o Dia das Mães com IA. Suba até 5 fotos, escolha um estilo de colagem e receba uma arte personalizada de Dia das Mães em minutos.">
+    <meta name="description" content="Crie uma carta virtual para o Dia das Mães. Junte mensagem, fotos e a música favorita do Spotify em um link único — com QR Code para imprimir e enviar pelo WhatsApp.">
     <meta name="theme-color" content="#e8336b">
-    <title>specialDay · Presente de Dia das Mães com IA</title>
+    <title>specialDay · Carta Virtual de Dia das Mães</title>
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Presente de Dia das Mães feito com IA">
-    <meta property="og:description" content="Suba até 5 fotos, escolha um estilo de colagem e a IA gera uma arte exclusiva pra emocionar a sua mãe.">
+    <meta property="og:title" content="Carta Virtual de Dia das Mães">
+    <meta property="og:description" content="Mensagem, fotos e música favorita do Spotify em uma carta digital com QR Code e link de WhatsApp.">
     <meta property="og:image" content="og-cover.jpg">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Presente de Dia das Mães feito com IA">
-    <meta name="twitter:description" content="Suba até 5 fotos, escolha um estilo de colagem e a IA gera uma arte exclusiva pra emocionar a sua mãe.">
+    <meta name="twitter:title" content="Carta Virtual de Dia das Mães">
+    <meta name="twitter:description" content="Mensagem, fotos e música favorita do Spotify em uma carta digital com QR Code e link de WhatsApp.">
     <meta name="twitter:image" content="og-cover.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,10 +28,10 @@
             </a>
             <nav class="nav">
                 <a href="#como-funciona">Como funciona</a>
-                <a href="#exemplos">Exemplos</a>
+                <a href="#exemplos">O que cabe</a>
                 <a href="#faq">Dúvidas</a>
             </nav>
-            <a href="#criar" class="btn btn-primary btn-sm">Criar presente</a>
+            <a href="#criar" class="btn btn-primary btn-sm">Criar carta</a>
         </div>
     </header>
 
@@ -44,62 +44,70 @@
                         <span class="badge-dot"></span>
                         Edição limitada · Dia das Mães 2026
                     </span>
-                    <h1>Um presente <em>único</em> para a mãe mais especial do mundo.</h1>
-                    <p class="lead">Suba até <strong>5 fotos</strong>, escolha o estilo da colagem e a <strong>IA gera uma arte exclusiva</strong> pra emocionar a sua mãe.</p>
+                    <h1>Uma <em>carta virtual</em> que cabe um abraço inteiro.</h1>
+                    <p class="lead">Escreva uma mensagem, suba até <strong>10 fotos</strong> e escolha a <strong>música favorita</strong> dela no Spotify. A gente entrega tudo num link com <strong>QR Code</strong> pra você imprimir ou mandar no WhatsApp.</p>
                 </div>
 
                 <form class="create-form create-form-center" id="presente-form" novalidate>
                     <div class="form-row">
-                        <label for="nome-mae">Nome da sua mãe</label>
-                        <input type="text" id="nome-mae" name="nome-mae" placeholder="Ex.: Maria" required>
+                        <label for="nome-destinatario">Nome de quem vai receber</label>
+                        <input type="text" id="nome-destinatario" name="nome-destinatario" placeholder="Ex.: Maria" required>
                     </div>
                     <div class="form-row form-row-2">
                         <div>
-                            <label for="idade">Idade</label>
+                            <label for="idade">Idade <span class="muted">(opcional)</span></label>
                             <input type="number" id="idade" name="idade" min="1" max="120" placeholder="60">
                         </div>
                         <div>
-                            <label for="estilo">Estilo da arte</label>
-                            <select id="estilo" name="estilo">
-                                <option value="colagem-revista">Colagem de Revista</option>
-                                <option value="capa-revista">Capa de Revista</option>
-                                <option value="album">Álbum</option>
-                                <option value="polaroid">Polaroid</option>
-                            </select>
+                            <label for="nome-remetente">Seu nome</label>
+                            <input type="text" id="nome-remetente" name="nome-remetente" placeholder="Como você quer assinar" autocomplete="name" required>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label for="tamanho">Formato da arte</label>
-                        <select id="tamanho" name="tamanho">
-                            <option value="post">Post Instagram (quadrado)</option>
-                            <option value="story">Story Instagram (vertical)</option>
-                        </select>
+                        <label for="texto">Sua mensagem</label>
+                        <textarea id="texto" name="texto" maxlength="2000" placeholder="Mãe, queria te dizer que..." required></textarea>
+                        <span class="form-hint"><span id="texto-count">0</span>/2000</span>
                     </div>
                     <div class="form-row">
-                        <label for="fotos">Suas fotos <span class="muted">(até 5)</span></label>
+                        <label for="fotos">Fotos <span class="muted">(até 10)</span></label>
                         <div class="dropzone" id="dropzone">
                             <input type="file" id="fotos" name="fotos" accept="image/*" multiple hidden>
                             <div class="dropzone-empty" id="dropzone-empty">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                 <p><strong>Arraste suas fotos aqui</strong> ou clique para selecionar</p>
-                                <span class="muted">JPG ou PNG · até 5 fotos</span>
+                                <span class="muted">JPG ou PNG · até 10 fotos</span>
                             </div>
                             <div class="dropzone-preview" id="dropzone-preview" hidden></div>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label for="seu-nome">Seu nome</label>
-                        <input type="text" id="seu-nome" name="seu-nome" placeholder="Como você quer ser chamado" autocomplete="name" required>
+                        <label for="spotify-query">Música favorita <span class="muted">(Spotify)</span></label>
+                        <div class="spotify-picker">
+                            <input type="text" id="spotify-query" placeholder="Busque por nome da música ou artista" autocomplete="off">
+                            <div class="spotify-results" id="spotify-results" hidden></div>
+                            <div class="spotify-selected" id="spotify-selected" hidden>
+                                <img id="spotify-selected-art" alt="" width="48" height="48">
+                                <div class="spotify-selected-info">
+                                    <strong id="spotify-selected-name"></strong>
+                                    <span id="spotify-selected-artist"></span>
+                                </div>
+                                <button type="button" class="spotify-clear" id="spotify-clear" aria-label="Remover música">×</button>
+                            </div>
+                            <input type="hidden" name="spotify_track_id" id="spotify_track_id">
+                            <input type="hidden" name="spotify_track_name" id="spotify_track_name">
+                            <input type="hidden" name="spotify_artist" id="spotify_artist">
+                            <input type="hidden" name="spotify_album_art" id="spotify_album_art">
+                        </div>
                     </div>
                     <div class="form-row">
-                        <label for="email">Seu e-mail para receber o presente</label>
+                        <label for="email">Seu e-mail <span class="muted">(para enviar o link da carta)</span></label>
                         <input type="email" id="email" name="email" placeholder="voce@email.com" autocomplete="email" required>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">
                         Continuar para o pagamento
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </button>
-                    <p class="form-foot">Ao enviar, você concorda em compartilhar suas fotos apenas para a geração do presente.</p>
+                    <p class="form-foot">Ao enviar, você concorda em compartilhar suas fotos apenas para gerar a carta virtual.</p>
                 </form>
             </div>
         </section>
@@ -108,7 +116,7 @@
             <div class="container countdown-inner">
                 <div class="countdown-text">
                     <h3>Faltam poucos dias para o Dia das Mães</h3>
-                    <p>Garanta o seu presente antes de <strong>10 de maio</strong>.</p>
+                    <p>Garanta a sua carta antes do <strong>2º domingo de maio</strong>.</p>
                 </div>
                 <div class="countdown" id="countdown" aria-live="polite">
                     <div class="cd-item"><span class="cd-num" data-unit="days">00</span><span class="cd-label">dias</span></div>
@@ -123,32 +131,32 @@
             <div class="container">
                 <div class="section-head">
                     <span class="eyebrow">Como funciona</span>
-                    <h2>Em 3 passos simples, um presente que a sua mãe nunca vai esquecer.</h2>
+                    <h2>Em 3 passos simples, uma carta que ela vai guardar pra vida toda.</h2>
                 </div>
                 <div class="steps">
                     <article class="step">
                         <span class="step-num">1</span>
                         <div class="step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
                         </div>
-                        <h3>Suba até 5 fotos</h3>
-                        <p>Escolha as melhores fotos da sua mãe, da família, de momentos marcantes.</p>
+                        <h3>Escreva a mensagem</h3>
+                        <p>Aquela carta que você sempre quis escrever, agora num lugar que ela pode guardar pra sempre.</p>
                     </article>
                     <article class="step">
                         <span class="step-num">2</span>
                         <div class="step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5a2 2 0 0 0-2.8 0L5 21"/></svg>
                         </div>
-                        <h3>Escolha o estilo</h3>
-                        <p>Conte o nome dela, a idade e escolha o estilo e o formato da arte.</p>
+                        <h3>Junte fotos e uma música</h3>
+                        <p>Até 10 fotos que contam histórias e a música favorita dela, direto do Spotify.</p>
                     </article>
                     <article class="step">
                         <span class="step-num">3</span>
                         <div class="step-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5a2 2 0 0 0-2.8 0L5 21"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="21"/><line x1="18" y1="14" x2="21" y2="14"/><line x1="14" y1="18" x2="18" y2="18"/><line x1="18" y1="21" x2="21" y2="21"/></svg>
                         </div>
-                        <h3>IA cria sua arte exclusiva</h3>
-                        <p>Geramos uma colagem única em alta resolução, pronta pra imprimir e emoldurar.</p>
+                        <h3>QR Code e link no WhatsApp</h3>
+                        <p>Você recebe um link único e um QR Code pra imprimir e colar no presente físico.</p>
                     </article>
                 </div>
             </div>
@@ -157,25 +165,25 @@
         <section class="section section-alt" id="exemplos">
             <div class="container">
                 <div class="section-head center">
-                    <span class="eyebrow">Inspirações</span>
-                    <h2>Cada presente tem o estilo da sua história.</h2>
-                    <p class="section-sub">Escolha o clima da arte que combina com a sua mãe.</p>
+                    <span class="eyebrow">O que cabe na carta</span>
+                    <h2>Tudo o que importa, num só lugar.</h2>
+                    <p class="section-sub">Sua mensagem ganha vida com fotos e a trilha sonora certa.</p>
                 </div>
                 <div class="examples">
                     <article class="example example-1">
-                        <div class="example-art"><span>✿</span></div>
-                        <h4>Colagem de Revista</h4>
-                        <p>Recortes sobrepostos com tipografia de revista, fitas e elementos gráficos no melhor estilo editorial.</p>
+                        <div class="example-art"><span>✉</span></div>
+                        <h4>Texto que emociona</h4>
+                        <p>Espaço pra você escrever em paz, sem limite de caracteres apertado. Até 2.000 caracteres pra dizer tudo.</p>
                     </article>
                     <article class="example example-2">
-                        <div class="example-art"><span>★</span></div>
-                        <h4>Capa de Revista</h4>
-                        <p>Sua mãe é a estrela da capa, com manchete e chamadas que celebram a história dela.</p>
+                        <div class="example-art"><span>✦</span></div>
+                        <h4>Fotos da sua história</h4>
+                        <p>Carrossel com até 10 fotos. Aquelas que ninguém mais lembra mas que valem ouro.</p>
                     </article>
                     <article class="example example-3">
-                        <div class="example-art"><span>♥</span></div>
-                        <h4>Álbum &amp; Polaroid</h4>
-                        <p>Páginas afetivas de álbum ou polaroides delicadas, no clima das memórias de família.</p>
+                        <div class="example-art"><span>♪</span></div>
+                        <h4>Música favorita do Spotify</h4>
+                        <p>Aquela música que vocês cantavam juntos toca direto na carta, com o player oficial.</p>
                     </article>
                 </div>
             </div>
@@ -189,20 +197,24 @@
                 </div>
                 <div class="faq">
                     <details>
-                        <summary>Quanto tempo demora para receber o presente?</summary>
-                        <p>A arte fica pronta em cerca de 1 minuto após o pagamento, direto na página de confirmação.</p>
+                        <summary>Como ela vai abrir a carta?</summary>
+                        <p>Por um link único e curto (tipo /c/abc123) ou pelo QR Code que você imprime. Funciona em qualquer celular ou navegador.</p>
                     </details>
                     <details>
-                        <summary>As fotos ficam guardadas?</summary>
-                        <p>Não. As fotos são usadas apenas para gerar o seu presente e excluídas em até 24 horas após a entrega.</p>
+                        <summary>A carta expira?</summary>
+                        <p>Não. O link da carta fica disponível pra ela acessar sempre que quiser.</p>
                     </details>
                     <details>
-                        <summary>Posso imprimir a arte?</summary>
-                        <p>Sim! Entregamos a arte em alta resolução, ideal para imprimir e emoldurar.</p>
+                        <summary>Quem pode ver a carta?</summary>
+                        <p>Só quem tem o link ou o QR Code. A carta não é indexada por buscadores.</p>
                     </details>
                     <details>
-                        <summary>Como recebo o presente?</summary>
-                        <p>Após o pagamento, você é redirecionado para uma página onde a arte aparece em até 1 minuto. Você baixa direto por lá.</p>
+                        <summary>Como envio pelo WhatsApp?</summary>
+                        <p>Depois de pronta, mostramos um botão que abre o WhatsApp com a mensagem e o link prontos pra você só escolher pra quem mandar.</p>
+                    </details>
+                    <details>
+                        <summary>Posso imprimir o QR Code?</summary>
+                        <p>Sim! Disponibilizamos o QR Code em alta resolução (PNG e SVG), pra você colar no cartão, embalagem ou moldura.</p>
                     </details>
                 </div>
             </div>
@@ -219,9 +231,9 @@
             <div class="footer-col">
                 <h5>Atalhos</h5>
                 <ul>
-                    <li><a href="#criar">Criar presente</a></li>
+                    <li><a href="#criar">Criar carta</a></li>
                     <li><a href="#como-funciona">Como funciona</a></li>
-                    <li><a href="#exemplos">Exemplos</a></li>
+                    <li><a href="#exemplos">O que cabe</a></li>
                     <li><a href="#faq">Dúvidas</a></li>
                 </ul>
             </div>

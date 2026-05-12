@@ -8,7 +8,17 @@ const abacatepayApi = axios.create({
   },
 });
 
-export async function criarCobranca({ pedidoId, email, nomeCliente, valor, frontendUrl }) {
+export async function criarCobranca({
+  pedidoId,
+  email,
+  nomeCliente,
+  valor,
+  frontendUrl,
+  metadata,
+  completionPath,
+  productName,
+  productDescription,
+}) {
   if (!frontendUrl) throw new Error('frontendUrl é obrigatório para returnUrl/completionUrl do AbacatePay');
 
   // CPF e celular são coletados pelo próprio AbacatePay no checkout — por isso
@@ -18,18 +28,18 @@ export async function criarCobranca({ pedidoId, email, nomeCliente, valor, front
     methods: ['PIX'],
     products: [{
       externalId: pedidoId,
-      name: 'Presente de Dia das Mães com IA',
-      description: `Pedido ${pedidoId}`,
+      name: productName || 'Carta Virtual specialDay',
+      description: productDescription || `Carta ${pedidoId}`,
       quantity: 1,
       price: valor,
     }],
     returnUrl: `${frontendUrl}/`,
-    completionUrl: `${frontendUrl}/sucesso.html?id=${pedidoId}`,
+    completionUrl: `${frontendUrl}${completionPath || `/sucesso.html?id=${pedidoId}`}`,
     customer: {
       name: nomeCliente,
       email,
     },
-    metadata: { pedido_id: pedidoId },
+    metadata: metadata || { pedido_id: pedidoId },
   });
 
   const billing = response.data?.data;

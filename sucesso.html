@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sua arte de Dia das Mães está sendo gerada.">
+    <meta name="description" content="Sua carta virtual está pronta.">
     <meta name="theme-color" content="#e8336b">
     <meta name="robots" content="noindex">
-    <title>Seu presente · specialDay</title>
+    <title>Sua carta · specialDay</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,69 +19,35 @@
             justify-content: center;
             padding: 48px 16px;
         }
-        .status-card {
-            max-width: 640px;
-            width: 100%;
-            text-align: center;
-        }
+        .status-card { max-width: 640px; width: 100%; text-align: center; }
         .status-card h1 {
             font-family: "Playfair Display", serif;
             font-size: clamp(1.8rem, 3.5vw, 2.5rem);
             margin: 0 0 12px;
-            color: var(--ink);
+            color: var(--ink-900);
         }
-        .status-card p.lead {
-            color: var(--ink-soft);
-            font-size: 1.05rem;
-            margin: 0 0 24px;
-        }
+        .status-card p.lead { color: var(--ink-500); font-size: 1.05rem; margin: 0 0 24px; }
         .spinner {
-            width: 64px;
-            height: 64px;
+            width: 64px; height: 64px;
             margin: 0 auto 28px;
             border-radius: 50%;
             border: 4px solid #fde6ef;
             border-top-color: var(--rose-500);
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .arte-preview {
-            margin: 0 auto 28px;
-            max-width: 560px;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 12px 40px rgba(232, 51, 107, 0.18);
-        }
-        .arte-preview img {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-        .status-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .status-meta {
-            margin-top: 20px;
-            color: var(--ink-soft);
-            font-size: 0.9rem;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .error-icon {
-            width: 56px;
-            height: 56px;
+            width: 56px; height: 56px;
             margin: 0 auto 20px;
             border-radius: 50%;
             background: #fff1f1;
             color: #c92a2a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 28px;
         }
+        .status-meta { margin-top: 20px; color: var(--ink-500); font-size: 0.9rem; }
+        .qr-download { font-size: .85rem; margin-top: 8px; }
+        .qr-download a { color: var(--rose-600); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -97,8 +63,8 @@
     <main class="status-wrap">
         <section class="status-card" id="status-card" aria-live="polite">
             <div class="spinner" id="spinner"></div>
-            <h1 id="status-title">Estamos preparando seu presente...</h1>
-            <p class="lead" id="status-message">Aguardando confirmação do pagamento. Isso pode levar alguns segundos.</p>
+            <h1 id="status-title">Confirmando o pagamento...</h1>
+            <p class="lead" id="status-message">Assim que o PIX cair, liberamos o link da sua carta automaticamente.</p>
             <p class="status-meta" id="status-meta"></p>
         </section>
     </main>
@@ -108,56 +74,78 @@
             "use strict";
 
             const params = new URLSearchParams(window.location.search);
-            const pedidoId = params.get("id");
+            const slug = params.get("slug");
             const card = document.getElementById("status-card");
 
-            if (!pedidoId) {
+            if (!slug) {
                 card.innerHTML = `
                     <div class="error-icon">!</div>
-                    <h1>Pedido não encontrado</h1>
-                    <p class="lead">Link inválido. Faça um novo pedido na página inicial.</p>
-                    <div class="status-actions">
+                    <h1>Link inválido</h1>
+                    <p class="lead">Não encontramos sua carta. Volte para a página inicial e tente novamente.</p>
+                    <div class="share-actions">
                         <a href="/" class="btn btn-primary">Voltar para o início</a>
                     </div>
                 `;
                 return;
             }
 
-            const COPY = {
-                pendente_pagamento: {
-                    title: "Aguardando confirmação do pagamento",
-                    msg: "Assim que confirmarmos o pagamento, começamos a gerar a sua arte automaticamente.",
-                },
-                pago: {
-                    title: "Pagamento confirmado!",
-                    msg: "Estamos preparando o pipeline para gerar sua arte personalizada...",
-                },
-                processando: {
-                    title: "Criando sua arte com IA...",
-                    msg: "Nosso modelo está montando a colagem com suas fotos. Isso costuma levar cerca de 1 minuto.",
-                },
-            };
-
-            const MAX_POLLS = 36;
-            const MAX_NETWORK_FAILS = 60;
-            let pollHandle = null;
+            const MAX_POLLS = 60;
+            const POLL_MS = 4000;
             let pollCount = 0;
             let networkFails = 0;
+            let pollHandle = null;
             let timedOut = false;
 
-            const renderEntregue = (arteUrl) => {
+            function escapeHtml(str) {
+                return String(str || "").replace(/[&<>"']/g, (c) => ({
+                    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;",
+                }[c]));
+            }
+
+            const renderPublicada = () => {
                 if (pollHandle) clearInterval(pollHandle);
+                const cartaUrl = `${window.location.origin}/c/${slug}`;
+                const waText = encodeURIComponent(`Fiz uma carta especial pra você 💌 ${cartaUrl}`);
                 card.innerHTML = `
-                    <h1>Sua arte está pronta! ✨</h1>
-                    <p class="lead">Pode baixar e compartilhar com a sua mãe. Imprima em alta resolução pra emoldurar.</p>
-                    <div class="arte-preview">
-                        <img src="${arteUrl}" alt="Arte de Dia das Mães gerada por IA">
+                    <h1>Sua carta está pronta! 💌</h1>
+                    <p class="lead">Compartilhe o link com quem precisa receber. O QR Code pode ser impresso e colado no presente.</p>
+                    <div class="share-box">
+                        <div class="qr-box">
+                            <img src="/api/qrcode?slug=${encodeURIComponent(slug)}&format=png" alt="QR Code da carta">
+                        </div>
+                        <p class="qr-download"><a href="/api/qrcode?slug=${encodeURIComponent(slug)}&format=svg" download="carta-${escapeHtml(slug)}.svg">Baixar QR em SVG</a> · <a href="/api/qrcode?slug=${encodeURIComponent(slug)}&format=png" download="carta-${escapeHtml(slug)}.png">baixar em PNG</a></p>
+                        <div class="share-link">
+                            <input type="text" id="share-url" readonly value="${escapeHtml(cartaUrl)}">
+                            <button type="button" id="copy-btn">Copiar</button>
+                        </div>
+                        <div class="share-actions">
+                            <a class="btn btn-whatsapp" href="https://wa.me/?text=${waText}" target="_blank" rel="noopener">
+                                Enviar pelo WhatsApp
+                            </a>
+                            <a class="btn btn-ghost" href="/c/${encodeURIComponent(slug)}" target="_blank" rel="noopener">Ver a carta</a>
+                        </div>
                     </div>
-                    <div class="status-actions">
-                        <a href="${arteUrl}" download class="btn btn-primary">Baixar imagem</a>
-                        <a href="/" class="btn btn-ghost">Criar outro presente</a>
-                    </div>
+                    <p class="status-meta">Carta: ${escapeHtml(slug)}</p>
                 `;
+
+                const copyBtn = document.getElementById("copy-btn");
+                const shareUrl = document.getElementById("share-url");
+                if (copyBtn && shareUrl) {
+                    copyBtn.addEventListener("click", async () => {
+                        try {
+                            await navigator.clipboard.writeText(shareUrl.value);
+                            copyBtn.textContent = "Copiado!";
+                            copyBtn.classList.add("copied");
+                            setTimeout(() => {
+                                copyBtn.textContent = "Copiar";
+                                copyBtn.classList.remove("copied");
+                            }, 1800);
+                        } catch {
+                            shareUrl.select();
+                            document.execCommand("copy");
+                        }
+                    });
+                }
             };
 
             const renderErro = (mensagem) => {
@@ -165,73 +153,64 @@
                 card.innerHTML = `
                     <div class="error-icon">!</div>
                     <h1>Ops, algo deu errado</h1>
-                    <p class="lead">${mensagem || "Não conseguimos gerar sua arte agora. Nosso time foi avisado e vai entrar em contato."}</p>
-                    <div class="status-actions">
+                    <p class="lead">${escapeHtml(mensagem || "Não conseguimos confirmar sua carta agora. Tente recarregar a página em alguns instantes.")}</p>
+                    <div class="share-actions">
                         <a href="/" class="btn btn-primary">Tentar novamente</a>
                     </div>
-                    <p class="status-meta">Pedido: ${pedidoId}</p>
+                    <p class="status-meta">Carta: ${escapeHtml(slug)}</p>
                 `;
-            };
-
-            const renderProgresso = (status) => {
-                if (timedOut) return;
-                const copy = COPY[status] || COPY.pago;
-                const titleEl = document.getElementById("status-title");
-                const msgEl = document.getElementById("status-message");
-                if (titleEl) titleEl.textContent = copy.title;
-                if (msgEl) msgEl.textContent = copy.msg;
-                const meta = document.getElementById("status-meta");
-                if (meta) meta.textContent = `Pedido: ${pedidoId}`;
             };
 
             const renderTimeout = () => {
                 if (timedOut) return;
                 timedOut = true;
-                // Keep polling in background — backend may still complete the art
                 card.innerHTML = `
                     <div class="error-icon">!</div>
-                    <h1>Estamos demorando mais do que o esperado</h1>
-                    <p class="lead">Continuamos tentando gerar sua arte em segundo plano. Aguarde mais alguns minutos — a página vai atualizar sozinha quando estiver pronta.</p>
-                    <div class="status-actions">
+                    <h1>Ainda estamos confirmando o pagamento</h1>
+                    <p class="lead">Vamos continuar tentando em segundo plano. Pode levar alguns minutos a mais — esta página vai atualizar sozinha quando a carta estiver pronta.</p>
+                    <div class="share-actions">
                         <a href="/" class="btn btn-ghost">Voltar para o início</a>
                     </div>
-                    <p class="status-meta">Pedido: <strong>${pedidoId}</strong></p>
+                    <p class="status-meta">Carta: <strong>${escapeHtml(slug)}</strong></p>
                 `;
             };
 
             const poll = async () => {
                 pollCount++;
                 try {
-                    const res = await fetch(`/api/status?id=${encodeURIComponent(pedidoId)}`);
+                    const res = await fetch(`/api/carta-publica?slug=${encodeURIComponent(slug)}&statusOnly=1`);
+                    if (res.status === 404) {
+                        renderErro("Carta não encontrada.");
+                        return;
+                    }
                     const data = await res.json();
                     networkFails = 0;
                     if (!data.success) {
-                        renderErro(data.error || "Pedido não encontrado.");
+                        renderErro(data.error || "Não conseguimos abrir sua carta.");
                         return;
                     }
-                    if (data.status === "entregue" && data.arteUrl) {
-                        renderEntregue(data.arteUrl);
+                    if (data.status === "publicada") {
+                        renderPublicada();
                         return;
                     }
                     if (data.status === "erro") {
-                        renderErro(data.erro);
+                        renderErro("Houve um problema ao publicar sua carta.");
                         return;
                     }
-                    renderProgresso(data.status);
                     if (pollCount >= MAX_POLLS) {
                         renderTimeout();
                     }
                 } catch (err) {
                     console.error("Erro no polling:", err);
                     networkFails++;
-                    if (networkFails > MAX_NETWORK_FAILS) {
+                    if (networkFails > 20) {
                         renderErro("Não conseguimos verificar o status. Tente recarregar a página.");
                     }
                 }
             };
 
             poll();
-            pollHandle = setInterval(poll, 5000);
+            pollHandle = setInterval(poll, POLL_MS);
         })();
     </script>
 

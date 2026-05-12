@@ -1,17 +1,26 @@
 {
   "outputDirectory": ".",
   "functions": {
-    "api/processar.js": {
-      "maxDuration": 60
-    },
-    "api/pedido.js": {
+    "api/carta.js": {
       "maxDuration": 30
     },
-    "api/status.js": {
+    "api/carta-publica.js": {
+      "maxDuration": 15
+    },
+    "api/spotify-search.js": {
+      "maxDuration": 15
+    },
+    "api/qrcode.js": {
+      "maxDuration": 10
+    },
+    "api/upload-urls.js": {
       "maxDuration": 15
     },
     "api/webhook.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/c/:slug", "destination": "/carta.html" }
+  ]
 }

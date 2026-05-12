@@ -43,7 +43,7 @@
     setInterval(tick, 1000);
 
     // ========== Photo upload (drag & drop + preview) ==========
-    const MAX_FILES = 5;
+    const MAX_FILES = 10;
     const dropzone = document.getElementById("dropzone");
     const input = document.getElementById("fotos");
     const empty = document.getElementById("dropzone-empty");
@@ -131,6 +131,123 @@
         });
     }
 
+    // ========== Character counter (texto) ==========
+    const textoEl = document.getElementById("texto");
+    const textoCount = document.getElementById("texto-count");
+    if (textoEl && textoCount) {
+        const updateCount = () => { textoCount.textContent = textoEl.value.length; };
+        textoEl.addEventListener("input", updateCount);
+        updateCount();
+    }
+
+    // ========== Spotify search ==========
+    const spotifyQuery = document.getElementById("spotify-query");
+    const spotifyResults = document.getElementById("spotify-results");
+    const spotifySelected = document.getElementById("spotify-selected");
+    const spotifySelectedArt = document.getElementById("spotify-selected-art");
+    const spotifySelectedName = document.getElementById("spotify-selected-name");
+    const spotifySelectedArtist = document.getElementById("spotify-selected-artist");
+    const spotifyClear = document.getElementById("spotify-clear");
+    const spotifyTrackId = document.getElementById("spotify_track_id");
+    const spotifyTrackName = document.getElementById("spotify_track_name");
+    const spotifyArtistInput = document.getElementById("spotify_artist");
+    const spotifyAlbumArt = document.getElementById("spotify_album_art");
+
+    const setSpotifyTrack = (track) => {
+        if (!track) return;
+        spotifyTrackId.value = track.id;
+        spotifyTrackName.value = track.name;
+        spotifyArtistInput.value = track.artist;
+        spotifyAlbumArt.value = track.album_art || "";
+        if (spotifySelectedArt) spotifySelectedArt.src = track.album_art || "";
+        if (spotifySelectedName) spotifySelectedName.textContent = track.name;
+        if (spotifySelectedArtist) spotifySelectedArtist.textContent = track.artist;
+        if (spotifySelected) spotifySelected.hidden = false;
+        if (spotifyResults) { spotifyResults.hidden = true; spotifyResults.innerHTML = ""; }
+        if (spotifyQuery) { spotifyQuery.value = ""; }
+    };
+
+    const clearSpotifyTrack = () => {
+        spotifyTrackId.value = "";
+        spotifyTrackName.value = "";
+        spotifyArtistInput.value = "";
+        spotifyAlbumArt.value = "";
+        if (spotifySelected) spotifySelected.hidden = true;
+    };
+
+    if (spotifyClear) spotifyClear.addEventListener("click", clearSpotifyTrack);
+
+    if (spotifyQuery && spotifyResults) {
+        let searchTimer = null;
+        let currentSearchId = 0;
+
+        const renderTracks = (tracks) => {
+            spotifyResults.innerHTML = "";
+            if (!tracks.length) {
+                spotifyResults.hidden = true;
+                return;
+            }
+            tracks.forEach((track) => {
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = "spotify-track";
+                const art = track.album_art
+                    ? `<img src="${track.album_art}" alt="" width="40" height="40" loading="lazy">`
+                    : `<span class="spotify-track-art-fallback">♪</span>`;
+                item.innerHTML = `
+                    ${art}
+                    <span class="spotify-track-info">
+                        <strong>${escapeHtml(track.name)}</strong>
+                        <span>${escapeHtml(track.artist)}</span>
+                    </span>
+                `;
+                item.addEventListener("click", () => setSpotifyTrack(track));
+                spotifyResults.appendChild(item);
+            });
+            spotifyResults.hidden = false;
+        };
+
+        const runSearch = async (q) => {
+            const myId = ++currentSearchId;
+            try {
+                const r = await fetch(`/api/spotify-search?q=${encodeURIComponent(q)}`);
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const data = await r.json();
+                if (myId !== currentSearchId) return; // stale result
+                renderTracks(data.tracks || []);
+            } catch (err) {
+                console.error("Erro Spotify:", err);
+                if (myId === currentSearchId) {
+                    spotifyResults.innerHTML = `<p class="spotify-error">Não conseguimos buscar no Spotify agora.</p>`;
+                    spotifyResults.hidden = false;
+                }
+            }
+        };
+
+        spotifyQuery.addEventListener("input", () => {
+            const q = spotifyQuery.value.trim();
+            if (searchTimer) clearTimeout(searchTimer);
+            if (q.length < 2) {
+                spotifyResults.hidden = true;
+                spotifyResults.innerHTML = "";
+                return;
+            }
+            searchTimer = setTimeout(() => runSearch(q), 300);
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!spotifyResults.contains(e.target) && e.target !== spotifyQuery) {
+                spotifyResults.hidden = true;
+            }
+        });
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, (c) => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;",
+        }[c]));
+    }
+
     // ========== Image compression (keep payload under Vercel's ~4.5MB limit) ==========
     const MAX_DIMENSION = 1600;
     const JPEG_QUALITY = 0.85;
@@ -170,6 +287,11 @@
                 form.reportValidity();
                 return;
             }
+            if (files.length === 0) {
+                alert("Adicione pelo menos uma foto à carta.");
+                return;
+            }
+
             const submitBtn = form.querySelector('button[type="submit"]');
             const restoreBtn = () => {
                 if (submitBtn) {
@@ -194,7 +316,6 @@
 
             if (submitBtn) submitBtn.textContent = "Enviando fotos…";
 
-            // 1. Pega URLs assinadas pra subir direto ao Supabase (evita limite do Vercel).
             let uploadInfo;
             try {
                 const r = await fetch("/api/upload-urls", {
@@ -218,7 +339,6 @@
                 return;
             }
 
-            // 2. Sobe cada foto direto pro Supabase via PUT.
             try {
                 await Promise.all(compressed.map((file, i) => {
                     const target = uploadInfo.files[i];
@@ -239,20 +359,22 @@
 
             if (submitBtn) submitBtn.textContent = "Finalizando…";
 
-            // 3. Cria o pedido com os caminhos das fotos já enviadas.
             const fotosPaths = uploadInfo.files.map(f => f.path);
             const payload = {
-                "nome-mae": form.querySelector('[name="nome-mae"]')?.value || "",
-                "seu-nome": form.querySelector('[name="seu-nome"]')?.value || "",
+                "nome-destinatario": form.querySelector('[name="nome-destinatario"]')?.value || "",
+                "nome-remetente": form.querySelector('[name="nome-remetente"]')?.value || "",
                 email: form.querySelector('[name="email"]')?.value || "",
                 idade: form.querySelector('[name="idade"]')?.value || "",
-                estilo: form.querySelector('[name="estilo"]')?.value || "colagem-revista",
-                tamanho: form.querySelector('[name="tamanho"]')?.value || "post",
+                texto: form.querySelector('[name="texto"]')?.value || "",
+                spotify_track_id: form.querySelector('[name="spotify_track_id"]')?.value || "",
+                spotify_track_name: form.querySelector('[name="spotify_track_name"]')?.value || "",
+                spotify_artist: form.querySelector('[name="spotify_artist"]')?.value || "",
+                spotify_album_art: form.querySelector('[name="spotify_album_art"]')?.value || "",
                 fotosPaths,
             };
 
             try {
-                const res = await fetch("/api/pedido", {
+                const res = await fetch("/api/carta", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
@@ -263,7 +385,7 @@
                     try {
                         message = JSON.parse(text).error || text;
                     } catch {
-                        message = `Erro ${res.status} ao processar seu pedido. Tente novamente em instantes.`;
+                        message = `Erro ${res.status} ao processar sua carta. Tente novamente em instantes.`;
                     }
                     throw new Error(message);
                 }
@@ -275,7 +397,7 @@
                 throw new Error(data.error || "Resposta inesperada do servidor");
             } catch (err) {
                 console.error("Erro ao enviar formulário:", err);
-                alert(`Erro ao processar seu pedido: ${err.message}`);
+                alert(`Erro ao processar sua carta: ${err.message}`);
                 restoreBtn();
             }
         });
