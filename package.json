@@ -1,7 +1,7 @@
 {
-  "name": "carta-virtual-dia-das-maes",
+  "name": "carta-virtual-dia-dos-namorados",
   "version": "2.0.0",
-  "description": "Carta Virtual de Dia das Mães com texto, fotos e Spotify",
+  "description": "Carta Virtual de Dia dos Namorados com texto, fotos e Spotify",
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
@@ -15,5 +15,8 @@
     "axios": "^1.7.7",
     "busboy": "^1.6.0",
     "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "vercel": "^54.1.0"
   }
 }

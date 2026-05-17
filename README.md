@@ -1,6 +1,6 @@
-# Carta Virtual de Dia das Mães · WLG Distribuidora
+# Carta Virtual de Dia dos Namorados · WLG Distribuidora
 
-Landing page da WLG Distribuidora para criar uma **carta virtual** de Dia das Mães. O cliente monta uma carta com texto, fotos e a música favorita do Spotify; depois do pagamento PIX, recebe um link público (com QR Code) que pode ser compartilhado pelo WhatsApp ou impresso na embalagem do presente.
+Landing page da WLG Distribuidora para criar uma **carta virtual** de Dia dos Namorados. O cliente monta uma carta com texto, fotos e a música do casal no Spotify; depois do pagamento PIX, recebe um link público (com QR Code) que pode ser compartilhado pelo WhatsApp ou impresso na embalagem do presente.
 
 ## Como funciona
 

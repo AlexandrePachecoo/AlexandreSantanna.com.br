@@ -1,19 +1,17 @@
 (() => {
     "use strict";
 
-    // ========== Countdown to Mother's Day (Brazil: 2nd Sunday of May) ==========
-    const getNextMothersDay = () => {
+    // ========== Countdown to Valentine's Day (Brazil: June 12) ==========
+    const getNextValentinesDay = () => {
         const now = new Date();
         for (let year = now.getFullYear(); year <= now.getFullYear() + 1; year++) {
-            const may1 = new Date(year, 4, 1);
-            const firstSundayOffset = (7 - may1.getDay()) % 7;
-            const secondSunday = new Date(year, 4, 1 + firstSundayOffset + 7, 0, 0, 0);
-            if (secondSunday > now) return secondSunday;
+            const valentines = new Date(year, 5, 12, 0, 0, 0);
+            if (valentines > now) return valentines;
         }
         return null;
     };
 
-    const target = getNextMothersDay();
+    const target = getNextValentinesDay();
     const cdEls = {
         days:    document.querySelector('[data-unit="days"]'),
         hours:   document.querySelector('[data-unit="hours"]'),
