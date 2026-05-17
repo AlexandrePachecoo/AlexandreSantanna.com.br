@@ -61,7 +61,13 @@ export default async function handler(req, res) {
       cartaId: result.cartaId,
     });
   } catch (err) {
-    console.error('Erro em /api/carta:', err);
+    console.error('Erro em /api/carta:', {
+      message: err?.message,
+      code: err?.code,
+      details: err?.details,
+      hint: err?.hint,
+      stack: err?.stack,
+    });
     return res.status(500).json({
       error: err.message || 'Erro interno do servidor',
     });
