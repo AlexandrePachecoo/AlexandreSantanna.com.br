@@ -25,22 +25,39 @@ export async function uploadFotos(fotos, pedidoId) {
   return paths;
 }
 
-export async function criarUploadUrls(uploadId, files) {
-  const out = [];
-  for (let i = 0; i < files.length; i++) {
-    const f = files[i];
-    const safeExt = (f.name || '').split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-    const ext = ['jpg', 'jpeg', 'png', 'webp'].includes(safeExt) ? safeExt : 'jpg';
-    const path = `uploads/${uploadId}/foto-${i + 1}.${ext}`;
-
-    const { data, error } = await supabase.storage
-      .from(BUCKET_FOTOS)
-      .createSignedUploadUrl(path);
-
-    if (error) throw error;
-    out.push({ signedUrl: data.signedUrl, path, token: data.token });
+async function withRetry(fn, { retries = 3, baseDelayMs = 300 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (attempt === retries) break;
+      const delay = baseDelayMs * 2 ** attempt;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
-  return out;
+  throw lastErr;
+}
+
+export async function criarUploadUrls(uploadId, files) {
+  return Promise.all(
+    files.map(async (f, i) => {
+      const safeExt = (f.name || '').split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const ext = ['jpg', 'jpeg', 'png', 'webp'].includes(safeExt) ? safeExt : 'jpg';
+      const path = `uploads/${uploadId}/foto-${i + 1}.${ext}`;
+
+      const data = await withRetry(async () => {
+        const { data, error } = await supabase.storage
+          .from(BUCKET_FOTOS)
+          .createSignedUploadUrl(path);
+        if (error) throw error;
+        return data;
+      });
+
+      return { signedUrl: data.signedUrl, path, token: data.token };
+    }),
+  );
 }
 
 export async function downloadFoto(path) {
