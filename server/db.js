@@ -1,17 +1,22 @@
 import { supabase } from './config/supabase.js';
 
-const TABLE = 'pedidos';
+const TABLE = 'cartas';
 
-export async function criarPedido(dados) {
+export async function criarCarta(dados) {
   const { data, error } = await supabase
     .from(TABLE)
     .insert({
+      slug: dados.slug,
       email: dados.email,
-      nome_mae: dados.nome_mae,
+      nome_remetente: dados.nome_remetente,
+      nome_destinatario: dados.nome_destinatario,
       idade: dados.idade,
-      estilo: dados.estilo,
-      tamanho: dados.tamanho,
-      fotos_urls: dados.fotos_urls,
+      texto: dados.texto,
+      fotos_paths: dados.fotos_paths,
+      spotify_track_id: dados.spotify_track_id,
+      spotify_track_name: dados.spotify_track_name,
+      spotify_artist: dados.spotify_artist,
+      spotify_album_art: dados.spotify_album_art,
       status: 'pendente_pagamento',
     })
     .select()
@@ -21,18 +26,18 @@ export async function criarPedido(dados) {
   return data;
 }
 
-export async function getPedido(id) {
+export async function getCartaBySlug(slug) {
   const { data, error } = await supabase
     .from(TABLE)
     .select('*')
-    .eq('id', id)
+    .eq('slug', slug)
     .maybeSingle();
 
   if (error) throw error;
   return data;
 }
 
-export async function getPedidoByChargeId(chargeId) {
+export async function getCartaByChargeId(chargeId) {
   const { data, error } = await supabase
     .from(TABLE)
     .select('*')
@@ -43,11 +48,11 @@ export async function getPedidoByChargeId(chargeId) {
   return data;
 }
 
-export async function updatePedido(id, updates) {
+export async function updateCartaBySlug(slug, updates) {
   const { data, error } = await supabase
     .from(TABLE)
     .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
+    .eq('slug', slug)
     .select()
     .single();
 

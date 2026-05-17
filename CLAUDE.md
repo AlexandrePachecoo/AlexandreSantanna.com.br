@@ -4,82 +4,84 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Presente de Dia das Mães com IA** is a landing page for WLG Distribuidora that enables customers to create personalized Mother's Day gifts powered by AI. The product flow:
+**Carta Virtual de Dia das Mães** is a landing page for WLG Distribuidora that lets customers create a personalized virtual letter (carta) for Mother's Day. The product flow:
 
-1. Upload up to 10 photos
-2. Enter recipient info (name, age) and a personal message
-3. AI generates exclusive artwork with title and harmonious composition
-4. AI generates an emotional video with smooth transitions
-5. AI narrates the message or applies instrumental music
+1. User writes a message (up to 2000 chars).
+2. Uploads up to 10 photos.
+3. Picks a favorite Spotify track (server-side Spotify Web API search).
+4. Pays via PIX (AbacatePay).
+5. On payment confirmation (webhook), the carta is **publicada** — accessible via `https://<host>/c/<slug>`.
+6. The success page surfaces the link, a downloadable QR Code, and a WhatsApp share button.
 
-The site is entirely static (no build tools needed) and emphasizes emotional design with Mother's Day theming (rose/cream palette).
+The static site is served as plain HTML/CSS/JS; Vercel Functions in `api/` handle the backend.
 
 ## Stack
 
-- **HTML**: Semantic structure with form handling for the gift creation flow
-- **CSS**: Custom design system using CSS variables, responsive (mobile-first)
-- **JavaScript**: Vanilla ES6 (IIFE), no dependencies
-  - Countdown timer (calculates next Mother's Day: 2nd Sunday of May in Brazil)
-  - Character counter for message textarea
-  - Drag-and-drop + click file upload with preview
-  - Form validation and submission
-  - Scroll-triggered animations using Intersection Observer
+- **Static frontend**: HTML/CSS/Vanilla JS (no build step).
+- **Backend**: Vercel Functions (Node, ESM) in `api/`.
+- **DB + Storage**: Supabase (`cartas` table, `fotos-pedidos` bucket).
+- **Payment**: AbacatePay (PIX). Customer fills CPF/phone in AbacatePay checkout.
+- **Spotify**: Client Credentials flow on the server, in-memory token cache.
+- **QR Code**: `qrcode` npm package (PNG/SVG output).
 
 ## Running Locally
 
 ```bash
-# Simple HTTP server (no build step needed)
+# Static only (no API):
 python3 -m http.server 8000
-# or
-npx http-server
 
-# Then open http://localhost:8000 in your browser
+# Full (API + static): requires Vercel CLI + .env populated
+npm install
+npm run dev   # vercel dev
 ```
 
 ## File Structure
 
-- **index.html** (358 lines): Main template with hero, countdown, steps, examples, form, FAQ, footer
-- **styles.css** (21KB): Complete design system; organized by sections (header, hero, sections, forms, buttons, animations)
-- **script.js** (194 lines): Vanilla JS in IIFE pattern, covering countdown, file upload, form interaction, scroll reveals
-- **README.md**: Product description and usage
+- `index.html` — landing page with the carta-creation form.
+- `carta.html` — public viewer for `/c/:slug` (rewritten by `vercel.json`).
+- `sucesso.html` — post-checkout page that polls until carta is `publicada` and surfaces link/QR/WhatsApp.
+- `styles.css` — design system + Spotify picker, share box, carta viewer styles.
+- `script.js` — countdown, drag-drop upload, image compression, Spotify search (debounced), form submit.
+- `api/carta.js` — create carta + AbacatePay billing.
+- `api/carta-publica.js` — public read (returns data only when `status='publicada'`).
+- `api/spotify-search.js` — Spotify track search (Client Credentials token cached).
+- `api/qrcode.js` — server-side QR code for `https://<host>/c/<slug>` (PNG or SVG).
+- `api/upload-urls.js` — signed Supabase upload URLs (up to 10 files).
+- `api/webhook.js` — AbacatePay webhook → marks carta as `publicada`.
+- `server/db.js` — Supabase CRUD for `cartas`.
+- `server/services/carta.js` — orchestrates DB insert + AbacatePay charge creation.
+- `server/services/spotify.js` — Spotify token cache + search.
+- `server/services/pagamento.js` — AbacatePay charge creation + webhook secret validation.
+- `server/services/storage.js` — Supabase storage helpers.
+- `supabase/migrations/0002_cartas.sql` — `cartas` table schema.
+
+## Data Model
+
+`cartas` table:
+- `slug` (unique, short base64url) — the public identifier in `/c/:slug`.
+- `nome_destinatario`, `nome_remetente`, `idade`, `texto`, `email`.
+- `fotos_paths` (text[]) — Supabase storage keys; signed URLs generated at read time.
+- `spotify_track_id`, `spotify_track_name`, `spotify_artist`, `spotify_album_art`.
+- `status`: `pendente_pagamento` → `publicada`.
+- `charge_id` — AbacatePay charge id (used as webhook fallback).
+
+## Required Env Vars
+
+```
+FRONTEND_URL=
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+ABACATEPAY_API_KEY=
+ABACATEPAY_WEBHOOK_SECRET=
+PRODUCT_PRICE=1500
+```
 
 ## Key Patterns
 
-### JavaScript
-- Encapsulation via IIFE to avoid global scope pollution
-- Null-safe DOM queries: all event listeners check element existence before attaching
-- Event delegation where appropriate (file upload uses input change, not file object tracking)
-- Intersection Observer for progressive enhancement (fallback if not supported)
-
-### CSS
-- Design tokens (color, spacing, shadows, radius) in `:root` as custom properties
-- Typography: serif (Playfair) for headings, sans (Inter) for body
-- Responsive scales: `clamp()` for fluid typography
-- Responsive grid: flex + mobile-first media queries
-- Backdrop blur for sticky header with fallback filter
-
-### Form Validation
-- HTML5 validation attributes (`required`, `type="email"`, `maxlength`, `min/max`)
-- Client-side `form.checkValidity()` before submission
-- Character counter updates live in textarea
-- Photo upload limited to 10 files; filters only image/* types
-
-## Next Steps (From README)
-
-The frontend is complete. Integration tasks:
-
-1. **Backend endpoint**: Connect form submit to API that triggers the AI pipeline
-2. **Image generation**: Integrate GPT-4 Vision / DALL·E for art generation
-3. **Video generation**: Implement AI video composition + smooth transitions
-4. **Text-to-speech**: Integrate TTS service for message narration
-5. **Payment & delivery**: Add payment gateway and email delivery system
-
-Form submission currently shows a success state after 900ms demo delay. Replace the setTimeout mock in `script.js:160` with actual API call.
-
-## Design Notes
-
-- Color palette intentionally warm (roses, creams, golds) for emotional connection
-- All interactive elements have hover/focus states
-- Animations use `reveal` class with scroll intersection for progressive disclosure
-- Form has success confirmation card that scrolls into view after submission
-- Details/summary elements for FAQ (accessible without JavaScript)
+- IIFE in `script.js`, null-safe DOM queries.
+- Design tokens in `:root` (rose palette + cream + ink).
+- Form: client-side compression (canvas, 1600px, 0.85 JPEG) → signed-URL upload → `/api/carta` → AbacatePay checkout.
+- Webhook is idempotent (skips if already `publicada`).
+- Spotify token cached in module-level variable (Vercel warm starts reuse it).
