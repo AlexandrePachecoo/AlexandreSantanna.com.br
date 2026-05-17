@@ -35,6 +35,19 @@ export async function criarCarta({
     spotify_album_art: spotifyAlbumArt,
   });
 
+  const bypassPayment = ['1', 'true', 'yes'].includes(
+    String(process.env.BYPASS_PAYMENT || '').toLowerCase()
+  );
+
+  if (bypassPayment) {
+    await updateCartaBySlug(slug, { status: 'publicada' });
+    return {
+      slug,
+      cartaId: carta.id,
+      checkoutUrl: `${frontendUrl}/sucesso.html?slug=${slug}`,
+    };
+  }
+
   const { checkoutUrl, chargeId } = await criarCobranca({
     pedidoId: carta.id,
     metadata: { carta_slug: slug, carta_id: carta.id },
