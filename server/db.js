@@ -2,6 +2,20 @@ import { supabase } from './config/supabase.js';
 
 const TABLE = 'cartas';
 
+function throwDbError(operation, error) {
+  console.error(`Erro Supabase em ${operation}:`, {
+    message: error.message,
+    code: error.code,
+    details: error.details,
+    hint: error.hint,
+  });
+  const err = new Error(error.message);
+  err.code = error.code;
+  err.details = error.details;
+  err.hint = error.hint;
+  throw err;
+}
+
 export async function criarCarta(dados) {
   const { data, error } = await supabase
     .from(TABLE)
@@ -22,7 +36,7 @@ export async function criarCarta(dados) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throwDbError('criarCarta', error);
   return data;
 }
 
@@ -33,7 +47,7 @@ export async function getCartaBySlug(slug) {
     .eq('slug', slug)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throwDbError('getCartaBySlug', error);
   return data;
 }
 
@@ -44,7 +58,7 @@ export async function getCartaByChargeId(chargeId) {
     .eq('charge_id', chargeId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throwDbError('getCartaByChargeId', error);
   return data;
 }
 
@@ -56,6 +70,6 @@ export async function updateCartaBySlug(slug, updates) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throwDbError('updateCartaBySlug', error);
   return data;
 }
