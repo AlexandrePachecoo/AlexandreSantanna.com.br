@@ -342,7 +342,7 @@
                     const target = uploadInfo.files[i];
                     return fetch(target.signedUrl, {
                         method: "PUT",
-                        headers: { "Content-Type": file.type, "x-upsert": "true" },
+                        headers: { "Content-Type": file.type },
                         body: file,
                     }).then(resp => {
                         if (!resp.ok) throw new Error(`Falha ao enviar foto ${i + 1} (${resp.status})`);
