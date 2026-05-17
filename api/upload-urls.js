@@ -37,7 +37,14 @@ export default async function handler(req, res) {
       files: urls,
     });
   } catch (err) {
-    console.error('Erro em /api/upload-urls:', err);
+    console.error('Erro em /api/upload-urls:', {
+      message: err?.message,
+      name: err?.name,
+      code: err?.code,
+      statusCode: err?.statusCode ?? err?.status,
+      cause: err?.cause,
+      stack: err?.stack,
+    });
     return res.status(500).json({ error: err.message || 'Erro interno' });
   }
 }
