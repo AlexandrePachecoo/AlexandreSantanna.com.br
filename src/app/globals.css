@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 340 24% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 340 24% 12%;
+
+    --primary: 335 78% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 50% 96%;
+    --secondary-foreground: 340 24% 18%;
+
+    --muted: 340 30% 96%;
+    --muted-foreground: 340 12% 48%;
+
+    --accent: 340 50% 94%;
+    --accent-foreground: 340 24% 18%;
+
+    --destructive: 0 78% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 14% 90%;
+    --input: 340 14% 88%;
+    --ring: 335 78% 50%;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 340 16% 8%;
+    --foreground: 340 12% 96%;
+
+    --card: 340 16% 12%;
+    --card-foreground: 340 12% 96%;
+
+    --primary: 335 78% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 16% 16%;
+    --secondary-foreground: 340 12% 92%;
+
+    --muted: 340 16% 16%;
+    --muted-foreground: 340 12% 64%;
+
+    --accent: 340 16% 18%;
+    --accent-foreground: 340 12% 92%;
+
+    --destructive: 0 78% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 14% 22%;
+    --input: 340 14% 22%;
+    --ring: 335 78% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'ss01' 1;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+/* Letter rendering surface — usado por LetterRenderer com CSS vars dos temas */
+.prose-letter {
+  font-family: var(--letter-body-font, inherit);
+}
+
+.prose-letter strong { font-weight: 700; }
+.prose-letter em { font-style: italic; }
