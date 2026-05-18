@@ -199,7 +199,7 @@ export function CreateLetterForm() {
 
       <Field
         label="Música (opcional)"
-        hint="Cole um link do Spotify ou YouTube — vira player embutido."
+        hint="Cole um link do YouTube — toca automaticamente quando a carta abrir."
         error={errors.musicUrl}
       >
         <div className="relative">
@@ -207,7 +207,7 @@ export function CreateLetterForm() {
           <Input
             value={values.musicUrl}
             onChange={(e) => update('musicUrl', e.target.value)}
-            placeholder="https://open.spotify.com/track/..."
+            placeholder="https://youtube.com/watch?v=..."
             className="pl-11"
           />
         </div>

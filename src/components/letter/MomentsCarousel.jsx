@@ -15,7 +15,7 @@ export function MomentsCarousel({ moments }) {
   const [direction, setDirection] = useState(0)
 
   const tilts = useMemo(
-    () => items.map((_, i) => (i % 2 === 0 ? -2 : 2) + (i % 3) - 1),
+    () => items.map((_, i) => (i % 2 === 0 ? -4 : 4) + ((i * 7) % 5) - 2),
     [items]
   )
 
@@ -45,20 +45,22 @@ export function MomentsCarousel({ moments }) {
         momentos
       </h3>
 
-      <div className="relative mx-auto h-[420px] w-full max-w-sm select-none sm:h-[460px]">
+      <div className="relative mx-auto h-[420px] w-full max-w-[18rem] select-none sm:h-[460px] sm:max-w-sm">
         {/* cards de baixo (pilha visual) */}
         {Array.from({ length: Math.min(STACK_DEPTH - 1, total - 1) }).map((_, i) => {
           const offset = i + 1
           const stackIndex = (current + offset) % total
           const tilt = tilts[stackIndex] || 0
+          const xShift = (offset % 2 === 0 ? -1 : 1) * offset * 14
+          const yShift = offset * 10
           return (
             <div
               key={`stack-${offset}`}
-              className="pointer-events-none absolute inset-0 mx-auto"
+              className="pointer-events-none absolute inset-0"
               style={{
-                transform: `translateY(${offset * 8}px) scale(${1 - offset * 0.04}) rotate(${tilt}deg)`,
+                transform: `translate(${xShift}px, ${yShift}px) scale(${1 - offset * 0.05}) rotate(${tilt}deg)`,
                 zIndex: STACK_DEPTH - offset,
-                opacity: 0.85 - offset * 0.15,
+                opacity: 0.95 - offset * 0.18,
               }}
             >
               <PolaroidCard item={items[stackIndex]} />
@@ -71,8 +73,8 @@ export function MomentsCarousel({ moments }) {
           <motion.div
             key={current}
             custom={direction}
-            initial={{ x: direction > 0 ? 60 : direction < 0 ? -60 : 0, opacity: 0, scale: 0.96 }}
-            animate={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
+            initial={{ x: direction > 0 ? 60 : direction < 0 ? -60 : 0, opacity: 0, scale: 0.96, rotate: 0 }}
+            animate={{ x: 0, opacity: 1, scale: 1, rotate: tilts[current] || 0 }}
             exit={(d) => ({
               x: d > 0 ? -380 : 380,
               opacity: 0,
@@ -85,7 +87,7 @@ export function MomentsCarousel({ moments }) {
             dragConstraints={{ left: 0, right: 0 }}
             onDragEnd={onDragEnd}
             whileTap={{ cursor: 'grabbing' }}
-            className="absolute inset-0 mx-auto cursor-grab"
+            className="absolute inset-0 cursor-grab"
             style={{ zIndex: STACK_DEPTH + 1 }}
           >
             <PolaroidCard item={items[current]} priority />
