@@ -5,7 +5,7 @@ import { hashPassword } from '@/lib/password'
 const TABLE = 'letters'
 
 const PUBLIC_COLUMNS =
-  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, cover_position, moments, music_url, visibility, unlock_date, views, created_at, updated_at'
+  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, cover_position, moments, music_url, visibility, unlock_date, views, created_at, updated_at, timer_type, timer_label, timer_date'
 
 const FULL_COLUMNS = `${PUBLIC_COLUMNS}, edit_token, password_hash`
 
@@ -31,6 +31,9 @@ export async function createLetter(payload) {
     visibility: payload.visibility ?? 'public',
     password_hash: passwordHash,
     unlock_date: payload.unlockDate ?? null,
+    timer_type: payload.timerType ?? null,
+    timer_label: payload.timerLabel ?? null,
+    timer_date: payload.timerDate ?? null,
   }
 
   const { data, error } = await supabase
@@ -82,6 +85,9 @@ export async function updateLetterByEditToken(token, patch) {
   if (patch.musicUrl !== undefined) update.music_url = patch.musicUrl
   if (patch.visibility !== undefined) update.visibility = patch.visibility
   if (patch.unlockDate !== undefined) update.unlock_date = patch.unlockDate
+  if (patch.timerType !== undefined) update.timer_type = patch.timerType
+  if (patch.timerLabel !== undefined) update.timer_label = patch.timerLabel
+  if (patch.timerDate !== undefined) update.timer_date = patch.timerDate
 
   if (patch.password !== undefined) {
     update.password_hash = patch.password ? await hashPassword(patch.password) : null
@@ -161,6 +167,9 @@ export function toPublicLetter(row, { includeContent = true } = {}) {
     views: row.views,
     createdAt: row.created_at,
     hasPassword: !!row.password_hash,
+    timerType: row.timer_type,
+    timerLabel: row.timer_label,
+    timerDate: row.timer_date,
   }
   if (includeContent) out.content = row.content
   return out

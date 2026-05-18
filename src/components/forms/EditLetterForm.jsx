@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ExternalLink, Loader2, Lock, MailPlus, Music, Save, Sparkles } from 'lucide-react'
+import { Clock, ExternalLink, Loader2, Lock, MailPlus, Music, Save, Sparkles, Timer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,6 +15,12 @@ import { MomentsUploader } from '@/components/forms/MomentsUploader'
 import { CreateLetterField as Field } from '@/components/forms/CreateLetterForm'
 import { LIMITS } from '@/lib/validators'
 import { absoluteUrl } from '@/lib/utils'
+
+const TIMER_OPTIONS = [
+  { value: '', label: 'Nenhum', desc: null },
+  { value: 'countdown', label: 'Regressivo', desc: 'quanto falta' },
+  { value: 'countup', label: 'Cronômetro', desc: 'quanto tempo faz' },
+]
 
 function toLocalInput(value) {
   if (!value) return ''
@@ -39,6 +45,9 @@ export function EditLetterForm({ token, initial }) {
     password: '',
     changePassword: false,
     unlockDate: toLocalInput(initial.unlockDate),
+    timerType: initial.timerType || '',
+    timerLabel: initial.timerLabel || '',
+    timerDate: toLocalInput(initial.timerDate),
   })
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
@@ -71,6 +80,9 @@ export function EditLetterForm({ token, initial }) {
         musicUrl: values.musicUrl,
         visibility: values.visibility,
         unlockDate: values.unlockDate || null,
+        timerType: values.timerType || null,
+        timerLabel: values.timerLabel || null,
+        timerDate: values.timerDate || null,
       }
       if (values.changePassword) {
         payload.password = isPrivate ? values.password : null
@@ -175,6 +187,74 @@ export function EditLetterForm({ token, initial }) {
           />
         </div>
       </Field>
+
+      <fieldset className="rounded-3xl border border-border/60 bg-secondary/30 p-6">
+        <legend className="-mt-9 inline-flex items-center gap-2 rounded-full bg-background px-4 py-1 text-sm font-medium">
+          <Timer className="h-3 w-3" /> Timer
+        </legend>
+
+        <div className="space-y-6">
+          <Field label="Tipo" hint="Adicione um contador animado na carta.">
+            <div className="grid grid-cols-3 gap-2">
+              {TIMER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('timerType', opt.value)}
+                  className={[
+                    'rounded-xl border px-3 py-3 text-center text-sm transition-all',
+                    values.timerType === opt.value
+                      ? 'border-primary bg-primary/10 font-medium text-primary'
+                      : 'border-border bg-background text-muted-foreground hover:border-primary/40',
+                  ].join(' ')}
+                >
+                  {opt.label}
+                  {opt.desc && (
+                    <span className="mt-0.5 block text-xs opacity-60">{opt.desc}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          {values.timerType && (
+            <>
+              <Field
+                label="Título do timer"
+                hint='Ex: "Falta para o nosso aniversário" ou "Namorando há"'
+                error={errors.timerLabel}
+              >
+                <Input
+                  value={values.timerLabel}
+                  onChange={(e) => update('timerLabel', e.target.value)}
+                  maxLength={80}
+                  placeholder={
+                    values.timerType === 'countdown'
+                      ? 'Falta para o nosso aniversário'
+                      : 'Namorando há'
+                  }
+                />
+              </Field>
+
+              <Field
+                label={values.timerType === 'countdown' ? 'Data alvo' : 'Data de início'}
+                hint={
+                  values.timerType === 'countdown'
+                    ? 'Data futura para a contagem regressiva.'
+                    : 'Data passada a partir de quando contar.'
+                }
+                error={errors.timerDate}
+              >
+                <Input
+                  type="datetime-local"
+                  value={values.timerDate}
+                  onChange={(e) => update('timerDate', e.target.value)}
+                />
+              </Field>
+            </>
+          )}
+        </div>
+      </fieldset>
 
       <fieldset className="rounded-3xl border border-border/60 bg-secondary/30 p-6">
         <legend className="-mt-9 inline-flex items-center gap-2 rounded-full bg-background px-4 py-1 text-sm font-medium">

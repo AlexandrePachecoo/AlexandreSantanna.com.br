@@ -33,6 +33,9 @@ export function validateLetterPayload(body, { partial = false } = {}) {
   const password = trimOrNull(body?.password, LIMITS.password)
   const unlockDate = trimOrNull(body?.unlockDate, 40)
   const customSlug = trimOrNull(body?.customSlug, 48)
+  const timerType = ['countdown', 'countup'].includes(body?.timerType) ? body.timerType : null
+  const timerLabel = trimOrNull(body?.timerLabel, 80)
+  const timerDate = trimOrNull(body?.timerDate, 40)
 
   const coverPositionRaw = trimOrNull(body?.coverPosition, 16)
   const coverPosition =
@@ -76,6 +79,16 @@ export function validateLetterPayload(body, { partial = false } = {}) {
     }
   }
 
+  let timerDateIso = null
+  if (timerDate) {
+    const d = new Date(timerDate)
+    if (Number.isNaN(d.getTime())) {
+      errors.timerDate = 'Data do timer inválida.'
+    } else {
+      timerDateIso = d.toISOString()
+    }
+  }
+
   return {
     valid: Object.keys(errors).length === 0,
     errors,
@@ -93,6 +106,9 @@ export function validateLetterPayload(body, { partial = false } = {}) {
       unlockDate: unlockDateIso,
       customSlug,
       moments,
+      timerType,
+      timerLabel,
+      timerDate: timerDateIso,
     },
   }
 }

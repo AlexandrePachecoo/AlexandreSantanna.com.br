@@ -7,6 +7,7 @@ import { ThemeDecorations } from '@/components/letter/ThemeDecorations'
 import { EnvelopeOpen } from '@/components/letter/EnvelopeOpen'
 import { MomentsCarousel } from '@/components/letter/MomentsCarousel'
 import { MusicPlayer } from '@/components/letter/MusicPlayer'
+import { TimerDisplay } from '@/components/letter/TimerDisplay'
 import { ShareButtons } from '@/components/shared/ShareButtons'
 import { formatDate } from '@/utils/format'
 
@@ -95,6 +96,14 @@ function LetterBody({ letter, theme, shareUrl }) {
       >
         {letter.content}
       </motion.div>
+
+      {letter.timerType && (
+        <TimerDisplay
+          type={letter.timerType}
+          label={letter.timerLabel}
+          date={letter.timerDate}
+        />
+      )}
 
       {letter.moments?.length > 0 && (
         <MomentsCarousel moments={letter.moments} />
