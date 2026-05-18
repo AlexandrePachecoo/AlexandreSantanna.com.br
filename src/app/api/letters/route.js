@@ -35,6 +35,7 @@ export async function POST(req) {
   data.content = sanitizeText(data.content)
   data.senderName = sanitizeText(data.senderName)
   data.recipientName = sanitizeText(data.recipientName)
+  data.timerLabel = sanitizeText(data.timerLabel)
   data.moments = (data.moments || []).map((m) => ({
     url: m.url,
     caption: sanitizeText(m.caption),

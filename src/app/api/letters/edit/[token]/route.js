@@ -62,6 +62,9 @@ export async function PUT(req, { params }) {
     musicUrl: data.musicUrl,
     visibility: data.visibility,
     unlockDate: data.unlockDate,
+    timerType: data.timerType,
+    timerLabel: sanitizeText(data.timerLabel),
+    timerDate: data.timerDate,
   }
   if (body?.coverPosition !== undefined) {
     patch.coverPosition = data.coverPosition

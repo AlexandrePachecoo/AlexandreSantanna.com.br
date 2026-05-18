@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Loader2, Lock, MailPlus, Music, Sparkles } from 'lucide-react'
+import { Clock, Loader2, Lock, MailPlus, Music, Sparkles, Timer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -30,7 +30,16 @@ const INITIAL = {
   password: '',
   unlockDate: '',
   customSlug: '',
+  timerType: '',
+  timerLabel: '',
+  timerDate: '',
 }
+
+const TIMER_OPTIONS = [
+  { value: '', label: 'Nenhum', desc: null },
+  { value: 'countdown', label: 'Regressivo', desc: 'quanto falta' },
+  { value: 'countup', label: 'Cronômetro', desc: 'quanto tempo faz' },
+]
 
 export function CreateLetterForm() {
   const router = useRouter()
@@ -212,6 +221,81 @@ export function CreateLetterForm() {
           />
         </div>
       </Field>
+
+      <fieldset className="rounded-3xl border border-border/60 bg-secondary/30 p-6">
+        <legend className="-mt-9 inline-flex items-center gap-2 rounded-full bg-background px-4 py-1 text-sm font-medium">
+          <Timer className="h-3 w-3" /> Timer
+        </legend>
+
+        <div className="space-y-6">
+          <Field
+            label="Tipo"
+            hint="Adicione um contador animado na carta."
+          >
+            <div className="grid grid-cols-3 gap-2">
+              {TIMER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('timerType', opt.value)}
+                  className={[
+                    'rounded-xl border px-3 py-3 text-center text-sm transition-all',
+                    values.timerType === opt.value
+                      ? 'border-primary bg-primary/10 font-medium text-primary'
+                      : 'border-border bg-background text-muted-foreground hover:border-primary/40',
+                  ].join(' ')}
+                >
+                  {opt.label}
+                  {opt.desc && (
+                    <span className="mt-0.5 block text-xs opacity-60">{opt.desc}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          {values.timerType && (
+            <>
+              <Field
+                label="Título do timer"
+                hint='Ex: "Falta para o nosso aniversário" ou "Namorando há"'
+                error={errors.timerLabel}
+              >
+                <Input
+                  value={values.timerLabel}
+                  onChange={(e) => update('timerLabel', e.target.value)}
+                  maxLength={80}
+                  placeholder={
+                    values.timerType === 'countdown'
+                      ? 'Falta para o nosso aniversário'
+                      : 'Namorando há'
+                  }
+                />
+              </Field>
+
+              <Field
+                label={
+                  values.timerType === 'countdown'
+                    ? 'Data alvo'
+                    : 'Data de início'
+                }
+                hint={
+                  values.timerType === 'countdown'
+                    ? 'Data futura para a contagem regressiva.'
+                    : 'Data passada a partir de quando contar.'
+                }
+                error={errors.timerDate}
+              >
+                <Input
+                  type="datetime-local"
+                  value={values.timerDate}
+                  onChange={(e) => update('timerDate', e.target.value)}
+                />
+              </Field>
+            </>
+          )}
+        </div>
+      </fieldset>
 
       <fieldset className="rounded-3xl border border-border/60 bg-secondary/30 p-6">
         <legend className="-mt-9 inline-flex items-center gap-2 rounded-full bg-background px-4 py-1 text-sm font-medium">
