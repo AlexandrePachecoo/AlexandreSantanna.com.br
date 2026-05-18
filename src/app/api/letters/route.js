@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createLetter } from '@/services/letters'
 import { validateLetterPayload, sanitizeText } from '@/lib/validators'
 import { getClientIp, rateLimit, tickGC } from '@/lib/ratelimit'
+import { serverErrorResponse } from '@/lib/errors'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -42,10 +43,10 @@ export async function POST(req) {
       editToken: row.edit_token,
     })
   } catch (err) {
-    console.error('[POST /api/letters] erro', err)
-    return NextResponse.json(
-      { error: 'Não consegui criar a carta. Tente novamente.' },
-      { status: 500 }
+    return serverErrorResponse(
+      'POST /api/letters',
+      err,
+      'Não consegui criar a carta. Tente novamente.'
     )
   }
 }
