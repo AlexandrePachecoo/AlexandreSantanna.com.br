@@ -59,8 +59,8 @@ export function validateLetterPayload(body, { partial = false } = {}) {
     errors.password = 'Senha deve ter pelo menos 4 caracteres.'
   }
 
-  if (musicUrl && !isValidUrl(musicUrl)) {
-    errors.musicUrl = 'URL de música inválida.'
+  if (musicUrl && !isYouTubeUrl(musicUrl)) {
+    errors.musicUrl = 'Cole um link do YouTube.'
   }
   if (coverImage && !isValidUrl(coverImage) && !coverImage.startsWith('letters/')) {
     errors.coverImage = 'Capa inválida.'
@@ -129,6 +129,15 @@ export function isValidUrl(v) {
   } catch {
     return false
   }
+}
+
+const YOUTUBE_RE =
+  /^(?:https?:\/\/)?(?:www\.|m\.|music\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)[\w-]+/
+
+export function isYouTubeUrl(v) {
+  if (!v || typeof v !== 'string') return false
+  if (!isValidUrl(v)) return false
+  return YOUTUBE_RE.test(v)
 }
 
 // Sanitiza texto antes de devolver para o client.

@@ -164,13 +164,13 @@ export function EditLetterForm({ token, initial }) {
         />
       </Field>
 
-      <Field label="Música">
+      <Field label="Música" hint="Cole um link do YouTube — toca automaticamente quando a carta abrir." error={errors.musicUrl}>
         <div className="relative">
           <Music className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={values.musicUrl}
             onChange={(e) => update('musicUrl', e.target.value)}
-            placeholder="https://..."
+            placeholder="https://youtube.com/watch?v=..."
             className="pl-11"
           />
         </div>
