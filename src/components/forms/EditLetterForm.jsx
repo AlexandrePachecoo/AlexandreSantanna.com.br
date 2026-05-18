@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { ThemePicker } from '@/components/forms/ThemePicker'
 import { CoverUploader } from '@/components/forms/CoverUploader'
+import { MomentsUploader } from '@/components/forms/MomentsUploader'
 import { CreateLetterField as Field } from '@/components/forms/CreateLetterForm'
 import { LIMITS } from '@/lib/validators'
 import { absoluteUrl } from '@/lib/utils'
@@ -31,6 +32,8 @@ export function EditLetterForm({ token, initial }) {
     recipientName: initial.recipientName || '',
     theme: initial.theme || 'romantic',
     coverImage: initial.coverImage || null,
+    coverPosition: initial.coverPosition || '50% 50%',
+    moments: Array.isArray(initial.moments) ? initial.moments : [],
     musicUrl: initial.musicUrl || '',
     visibility: initial.visibility || 'public',
     password: '',
@@ -63,6 +66,8 @@ export function EditLetterForm({ token, initial }) {
         recipientName: values.recipientName,
         theme: values.theme,
         coverImage: values.coverImage,
+        coverPosition: values.coverPosition,
+        moments: values.moments,
         musicUrl: values.musicUrl,
         visibility: values.visibility,
         unlockDate: values.unlockDate || null,
@@ -143,10 +148,19 @@ export function EditLetterForm({ token, initial }) {
         <ThemePicker value={values.theme} onChange={(t) => update('theme', t)} />
       </Field>
 
-      <Field label="Capa">
+      <Field label="Capa" hint="Arraste dentro do preview para enquadrar.">
         <CoverUploader
           value={values.coverImage}
           onChange={(url) => update('coverImage', url)}
+          position={values.coverPosition}
+          onPositionChange={(pos) => update('coverPosition', pos)}
+        />
+      </Field>
+
+      <Field label="Momentos" error={errors.moments}>
+        <MomentsUploader
+          value={values.moments}
+          onChange={(next) => update('moments', next)}
         />
       </Field>
 

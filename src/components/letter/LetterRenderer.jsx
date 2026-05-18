@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { getTheme } from '@/constants/themes'
 import { ThemeDecorations } from '@/components/letter/ThemeDecorations'
 import { EnvelopeOpen } from '@/components/letter/EnvelopeOpen'
+import { MomentsCarousel } from '@/components/letter/MomentsCarousel'
 import { MusicPlayer } from '@/components/letter/MusicPlayer'
 import { ShareButtons } from '@/components/shared/ShareButtons'
 import { formatDate } from '@/utils/format'
@@ -58,6 +59,7 @@ function LetterBody({ letter, theme, shareUrl }) {
             alt="Capa"
             fill
             className="object-cover"
+            style={{ objectPosition: letter.coverPosition || '50% 50%' }}
             sizes="(max-width: 768px) 100vw, 700px"
             priority
           />
@@ -93,6 +95,10 @@ function LetterBody({ letter, theme, shareUrl }) {
       >
         {letter.content}
       </motion.div>
+
+      {letter.moments?.length > 0 && (
+        <MomentsCarousel moments={letter.moments} />
+      )}
 
       {letter.senderName && (
         <motion.p
