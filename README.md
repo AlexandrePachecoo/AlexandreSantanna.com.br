@@ -28,7 +28,7 @@ Abre em `http://localhost:3000`.
 
 ```
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJxxx
 SUPABASE_STORAGE_BUCKET=letters
 ```
