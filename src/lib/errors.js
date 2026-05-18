@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 import { nanoid } from 'nanoid'
 
 const ENV_HINT = {
-  NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+  SUPABASE_URL: !!process.env.SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
 }
 
