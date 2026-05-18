@@ -6,6 +6,7 @@ import {
 } from '@/services/letters'
 import { validateLetterPayload, sanitizeText } from '@/lib/validators'
 import { getClientIp, rateLimit, tickGC } from '@/lib/ratelimit'
+import { serverErrorResponse } from '@/lib/errors'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -73,10 +74,10 @@ export async function PUT(req, { params }) {
     if (err?.code === 'PGRST116') {
       return NextResponse.json({ error: 'Não encontrada.' }, { status: 404 })
     }
-    console.error('[PUT /api/letters/edit] erro', err)
-    return NextResponse.json(
-      { error: 'Não consegui salvar. Tente novamente.' },
-      { status: 500 }
+    return serverErrorResponse(
+      'PUT /api/letters/edit',
+      err,
+      'Não consegui salvar. Tente novamente.'
     )
   }
 }
