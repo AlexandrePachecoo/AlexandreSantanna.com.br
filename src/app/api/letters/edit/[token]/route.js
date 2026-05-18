@@ -63,6 +63,15 @@ export async function PUT(req, { params }) {
     visibility: data.visibility,
     unlockDate: data.unlockDate,
   }
+  if (body?.coverPosition !== undefined) {
+    patch.coverPosition = data.coverPosition
+  }
+  if (body?.moments !== undefined) {
+    patch.moments = (data.moments || []).map((m) => ({
+      url: m.url,
+      caption: sanitizeText(m.caption),
+    }))
+  }
   if (body?.password !== undefined) {
     patch.password = data.password || null
   }

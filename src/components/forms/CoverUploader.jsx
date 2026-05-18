@@ -1,57 +1,70 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import Image from 'next/image'
-import { ImagePlus, Loader2, X } from 'lucide-react'
+import { ImagePlus, Loader2, Move, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { uploadImage } from '@/lib/uploadImage'
 import { cn } from '@/lib/utils'
 
-const MAX_BYTES = 8 * 1024 * 1024
-
-export function CoverUploader({ value, onChange }) {
+export function CoverUploader({ value, onChange, position, onPositionChange }) {
   const inputRef = useRef(null)
+  const containerRef = useRef(null)
+  const dragState = useRef(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [dragging, setDragging] = useState(false)
+
+  const safePosition = isValidPosition(position) ? position : '50% 50%'
 
   async function pick(e) {
     const file = e.target.files?.[0]
     if (!file) return
     setError(null)
-
-    if (!file.type.startsWith('image/')) {
-      setError('Selecione uma imagem.')
-      return
-    }
-    if (file.size > MAX_BYTES) {
-      setError('Imagem maior que 8MB.')
-      return
-    }
-
     setLoading(true)
     try {
-      const compressed = await compressImage(file)
-      const sigRes = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mimeType: compressed.type, size: compressed.size }),
-      })
-      const sig = await sigRes.json()
-      if (!sigRes.ok) throw new Error(sig.error || 'Falha ao gerar upload URL.')
-
-      const up = await fetch(sig.signedUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': compressed.type },
-        body: compressed,
-      })
-      if (!up.ok) throw new Error('Falha no upload.')
-
-      onChange?.(sig.publicUrl)
+      const { publicUrl } = await uploadImage(file)
+      onChange?.(publicUrl)
+      onPositionChange?.('50% 50%')
     } catch (err) {
       setError(err.message || 'Não consegui enviar a imagem.')
     } finally {
       setLoading(false)
       if (inputRef.current) inputRef.current.value = ''
     }
+  }
+
+  function onPointerDown(e) {
+    if (!onPositionChange) return
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const [x, y] = parsePosition(safePosition)
+    dragState.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      baseX: x,
+      baseY: y,
+      width: rect.width,
+      height: rect.height,
+    }
+    setDragging(true)
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+  }
+
+  function onPointerMove(e) {
+    const s = dragState.current
+    if (!s) return
+    const dx = ((e.clientX - s.startX) / s.width) * 100
+    const dy = ((e.clientY - s.startY) / s.height) * 100
+    const nx = clamp(s.baseX - dx, 0, 100)
+    const ny = clamp(s.baseY - dy, 0, 100)
+    onPositionChange?.(`${Math.round(nx)}% ${Math.round(ny)}%`)
+  }
+
+  function onPointerUp(e) {
+    if (!dragState.current) return
+    dragState.current = null
+    setDragging(false)
+    e.currentTarget.releasePointerCapture?.(e.pointerId)
   }
 
   return (
@@ -65,18 +78,49 @@ export function CoverUploader({ value, onChange }) {
       />
 
       {value ? (
-        <div className="relative overflow-hidden rounded-2xl border border-border/60">
-          <div className="relative aspect-[16/9] w-full bg-secondary">
-            <Image src={value} alt="Capa" fill className="object-cover" sizes="700px" />
-          </div>
-          <button
-            type="button"
-            onClick={() => onChange?.(null)}
-            className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
-            aria-label="Remover capa"
+        <div className="space-y-2">
+          <div
+            ref={containerRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            className={cn(
+              'relative aspect-[16/9] w-full select-none overflow-hidden rounded-2xl border border-border/60 bg-secondary touch-none',
+              onPositionChange && (dragging ? 'cursor-grabbing' : 'cursor-grab')
+            )}
+            style={{
+              backgroundImage: `url(${value})`,
+              backgroundSize: 'cover',
+              backgroundPosition: safePosition,
+              backgroundRepeat: 'no-repeat',
+            }}
           >
-            <X className="h-4 w-4" />
-          </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onChange?.(null)
+              }}
+              className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+              aria-label="Remover capa"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            {onPositionChange && (
+              <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-xs text-white">
+                <Move className="h-3 w-3" /> arraste para enquadrar
+              </div>
+            )}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+          >
+            Trocar imagem
+          </Button>
         </div>
       ) : (
         <button
@@ -101,56 +145,20 @@ export function CoverUploader({ value, onChange }) {
       )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
-
-      {value && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => inputRef.current?.click()}
-        >
-          Trocar imagem
-        </Button>
-      )}
     </div>
   )
 }
 
-async function compressImage(file, maxDim = 1600, quality = 0.85) {
-  if (typeof window === 'undefined') return file
-  const dataUrl = await new Promise((resolve, reject) => {
-    const r = new FileReader()
-    r.onload = () => resolve(r.result)
-    r.onerror = reject
-    r.readAsDataURL(file)
-  })
+function parsePosition(pos) {
+  const m = String(pos).match(/^(\d{1,3})% (\d{1,3})%$/)
+  if (!m) return [50, 50]
+  return [Number(m[1]), Number(m[2])]
+}
 
-  const img = await new Promise((resolve, reject) => {
-    const i = new window.Image()
-    i.onload = () => resolve(i)
-    i.onerror = reject
-    i.src = dataUrl
-  })
+function isValidPosition(pos) {
+  return typeof pos === 'string' && /^\d{1,3}% \d{1,3}%$/.test(pos)
+}
 
-  let { width, height } = img
-  if (width > maxDim || height > maxDim) {
-    if (width > height) {
-      height = Math.round((height * maxDim) / width)
-      width = maxDim
-    } else {
-      width = Math.round((width * maxDim) / height)
-      height = maxDim
-    }
-  }
-
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')
-  ctx.drawImage(img, 0, 0, width, height)
-
-  const blob = await new Promise((resolve) =>
-    canvas.toBlob(resolve, 'image/jpeg', quality)
-  )
-  return new File([blob], 'cover.jpg', { type: 'image/jpeg' })
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v))
 }

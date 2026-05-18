@@ -5,7 +5,11 @@ export const LIMITS = {
   content: 5000,
   name: 60,
   password: 64,
+  moments: 10,
+  momentCaption: 140,
 }
+
+const COVER_POSITION_RE = /^\d{1,3}% \d{1,3}%$/
 
 function trimOrNull(v, max) {
   if (v == null) return null
@@ -29,6 +33,15 @@ export function validateLetterPayload(body, { partial = false } = {}) {
   const password = trimOrNull(body?.password, LIMITS.password)
   const unlockDate = trimOrNull(body?.unlockDate, 40)
   const customSlug = trimOrNull(body?.customSlug, 48)
+
+  const coverPositionRaw = trimOrNull(body?.coverPosition, 16)
+  const coverPosition =
+    coverPositionRaw && COVER_POSITION_RE.test(coverPositionRaw)
+      ? coverPositionRaw
+      : '50% 50%'
+
+  const { moments, momentsError } = parseMoments(body?.moments)
+  if (momentsError) errors.moments = momentsError
 
   if (!partial) {
     if (!title) errors.title = 'Dê um título para a carta.'
@@ -73,13 +86,40 @@ export function validateLetterPayload(body, { partial = false } = {}) {
       recipientName,
       theme,
       coverImage,
+      coverPosition,
       musicUrl,
       visibility,
       password,
       unlockDate: unlockDateIso,
       customSlug,
+      moments,
     },
   }
+}
+
+function parseMoments(raw) {
+  if (raw == null) return { moments: [], momentsError: null }
+  if (!Array.isArray(raw)) {
+    return { moments: [], momentsError: 'Momentos inválidos.' }
+  }
+  if (raw.length > LIMITS.moments) {
+    return {
+      moments: [],
+      momentsError: `Máximo de ${LIMITS.moments} momentos.`,
+    }
+  }
+  const out = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const url = trimOrNull(item.url, 600)
+    if (!url) continue
+    if (!isValidUrl(url) && !url.startsWith('letters/')) {
+      return { moments: [], momentsError: 'URL de momento inválida.' }
+    }
+    const caption = trimOrNull(item.caption, LIMITS.momentCaption) || ''
+    out.push({ url, caption })
+  }
+  return { moments: out, momentsError: null }
 }
 
 export function isValidUrl(v) {

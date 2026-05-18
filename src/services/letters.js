@@ -5,7 +5,7 @@ import { hashPassword } from '@/lib/password'
 const TABLE = 'letters'
 
 const PUBLIC_COLUMNS =
-  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, music_url, visibility, unlock_date, views, created_at, updated_at'
+  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, cover_position, moments, music_url, visibility, unlock_date, views, created_at, updated_at'
 
 const FULL_COLUMNS = `${PUBLIC_COLUMNS}, edit_token, password_hash`
 
@@ -25,6 +25,8 @@ export async function createLetter(payload) {
     recipient_name: payload.recipientName ?? null,
     theme: payload.theme ?? 'romantic',
     cover_image: payload.coverImage ?? null,
+    cover_position: payload.coverPosition ?? '50% 50%',
+    moments: payload.moments ?? [],
     music_url: payload.musicUrl ?? null,
     visibility: payload.visibility ?? 'public',
     password_hash: passwordHash,
@@ -75,6 +77,8 @@ export async function updateLetterByEditToken(token, patch) {
   if (patch.recipientName !== undefined) update.recipient_name = patch.recipientName
   if (patch.theme !== undefined) update.theme = patch.theme
   if (patch.coverImage !== undefined) update.cover_image = patch.coverImage
+  if (patch.coverPosition !== undefined) update.cover_position = patch.coverPosition
+  if (patch.moments !== undefined) update.moments = patch.moments
   if (patch.musicUrl !== undefined) update.music_url = patch.musicUrl
   if (patch.visibility !== undefined) update.visibility = patch.visibility
   if (patch.unlockDate !== undefined) update.unlock_date = patch.unlockDate
@@ -149,6 +153,8 @@ export function toPublicLetter(row, { includeContent = true } = {}) {
     recipientName: row.recipient_name,
     theme: row.theme,
     coverImage: row.cover_image,
+    coverPosition: row.cover_position || '50% 50%',
+    moments: Array.isArray(row.moments) ? row.moments : [],
     musicUrl: row.music_url,
     visibility: row.visibility,
     unlockDate: row.unlock_date,

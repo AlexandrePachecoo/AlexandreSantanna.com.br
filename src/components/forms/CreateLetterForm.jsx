@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { ThemePicker } from '@/components/forms/ThemePicker'
 import { CoverUploader } from '@/components/forms/CoverUploader'
+import { MomentsUploader } from '@/components/forms/MomentsUploader'
 import { TEMPLATES } from '@/constants/templates'
 import { LIMITS } from '@/lib/validators'
 import { SuccessScreen } from '@/components/shared/SuccessScreen'
@@ -22,6 +23,8 @@ const INITIAL = {
   recipientName: '',
   theme: 'romantic',
   coverImage: null,
+  coverPosition: '50% 50%',
+  moments: [],
   musicUrl: '',
   visibility: 'public',
   password: '',
@@ -172,12 +175,25 @@ export function CreateLetterForm() {
 
       <Field
         label="Capa (opcional)"
-        hint="Uma foto que conte o início da história."
+        hint="Uma foto que conte o início da história. Depois de enviar, arraste dentro do preview para enquadrar."
         error={errors.coverImage}
       >
         <CoverUploader
           value={values.coverImage}
           onChange={(url) => update('coverImage', url)}
+          position={values.coverPosition}
+          onPositionChange={(pos) => update('coverPosition', pos)}
+        />
+      </Field>
+
+      <Field
+        label="Momentos (opcional)"
+        hint={`Até ${LIMITS.moments} fotos com uma legenda em cada — viram um carrossel na carta.`}
+        error={errors.moments}
+      >
+        <MomentsUploader
+          value={values.moments}
+          onChange={(next) => update('moments', next)}
         />
       </Field>
 
