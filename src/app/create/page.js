@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, PenLine } from 'lucide-react'
 import { Navbar } from '@/components/sections/Navbar'
 import { Footer } from '@/components/sections/Footer'
 import { CreateLetterForm } from '@/components/forms/CreateLetterForm'
@@ -15,27 +15,37 @@ export default function CreatePage() {
   return (
     <>
       <Navbar />
-      <main className="container max-w-2xl py-12 sm:py-20">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-3 w-3" /> Voltar
-        </Link>
+      <main className="relative">
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-rose-50/60 via-rose-50/20 to-transparent" />
 
-        <div className="mt-8">
-          <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-5xl">
-            Escreva sua carta.
-          </h1>
-          <p className="mt-3 max-w-md text-muted-foreground">
-            Sem login. Sem fricção. Crie, personalize e compartilhe em minutos.
-          </p>
-        </div>
+        <div className="container max-w-3xl py-12 sm:py-20">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Voltar
+          </Link>
 
-        <div className="mt-12">
-          <Suspense fallback={null}>
-            <CreateLetterForm />
-          </Suspense>
+          <div className="mt-10">
+            <span className="ornament-rule font-display text-xs uppercase tracking-[0.32em] text-primary/70">
+              <PenLine className="h-3 w-3" />
+              Nova carta
+            </span>
+            <h1 className="mt-5 text-balance font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+              Escreva uma carta que{' '}
+              <span className="text-gradient-romantic italic">fica.</span>
+            </h1>
+            <p className="mt-4 max-w-lg text-pretty text-base text-muted-foreground sm:text-lg">
+              Sem login, sem fricção. Personalize com tema, capa, música e momentos —
+              depois mande o link.
+            </p>
+          </div>
+
+          <div className="mt-14">
+            <Suspense fallback={null}>
+              <CreateLetterForm />
+            </Suspense>
+          </div>
         </div>
       </main>
       <Footer />

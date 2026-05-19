@@ -59,13 +59,13 @@ export function MomentsUploader({ value, onChange }) {
               key={`${m.url}-${i}`}
               className="flex gap-3 rounded-2xl border border-border/60 bg-secondary/30 p-3"
             >
-              <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-secondary">
+              <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-secondary sm:h-24 sm:w-20">
                 <Image
                   src={m.url}
                   alt={`Momento ${i + 1}`}
                   fill
                   className="object-cover"
-                  sizes="80px"
+                  sizes="(min-width: 640px) 80px, 64px"
                 />
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -97,7 +97,7 @@ export function MomentsUploader({ value, onChange }) {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={loading || !canAddMore}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-secondary/40 px-6 py-6 text-sm font-medium transition-colors hover:border-primary/50 hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+        className="group flex w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed border-border bg-secondary/30 px-6 py-5 text-sm font-medium transition-all hover:border-primary/50 hover:bg-secondary/60 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? (
           <>

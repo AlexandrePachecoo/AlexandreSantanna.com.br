@@ -128,19 +128,23 @@ export function CoverUploader({ value, onChange, position, onPositionChange }) {
           onClick={() => inputRef.current?.click()}
           disabled={loading}
           className={cn(
-            'flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-secondary/40 px-6 py-10 text-center transition-colors hover:border-primary/50 hover:bg-secondary',
+            'group flex min-h-[160px] w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border bg-secondary/30 px-6 py-8 text-center transition-all hover:border-primary/50 hover:bg-secondary/60 sm:min-h-[180px] sm:py-10',
             loading && 'opacity-60'
           )}
         >
-          {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          ) : (
-            <ImagePlus className="h-5 w-5 text-muted-foreground" />
-          )}
-          <p className="text-sm font-medium">
-            {loading ? 'Enviando...' : 'Adicionar imagem de capa'}
-          </p>
-          <p className="text-xs text-muted-foreground">PNG, JPG, WEBP até 8MB</p>
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-rose-200/40 text-primary ring-1 ring-primary/15 transition-transform group-hover:rotate-[-6deg]">
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ImagePlus className="h-5 w-5" />
+            )}
+          </span>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-foreground">
+              {loading ? 'Enviando…' : 'Adicionar imagem de capa'}
+            </p>
+            <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP · até 8MB</p>
+          </div>
         </button>
       )}
 

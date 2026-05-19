@@ -3,7 +3,20 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Clock, Loader2, Lock, MailPlus, Music, Sparkles, Timer } from 'lucide-react'
+import {
+  Clock,
+  History,
+  Loader2,
+  Lock,
+  MailPlus,
+  Music,
+  Palette,
+  PenLine,
+  Settings2,
+  Slash,
+  Sparkles,
+  Timer,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -36,9 +49,9 @@ const INITIAL = {
 }
 
 const TIMER_OPTIONS = [
-  { value: '', label: 'Nenhum', desc: null },
-  { value: 'countdown', label: 'Regressivo', desc: 'quanto falta' },
-  { value: 'countup', label: 'Cronômetro', desc: 'quanto tempo faz' },
+  { value: '', label: 'Nenhum', desc: null, icon: Slash },
+  { value: 'countdown', label: 'Regressivo', desc: 'quanto falta', icon: Clock },
+  { value: 'countup', label: 'Cronômetro', desc: 'quanto tempo faz', icon: History },
 ]
 
 export function CreateLetterForm() {
@@ -114,151 +127,171 @@ export function CreateLetterForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-12">
-      <Field
-        label="Título"
-        hint="Um chamado curto. Ex: 'Para o amor da minha vida'"
-        error={errors.title}
-      >
-        <Input
-          value={values.title}
-          onChange={(e) => update('title', e.target.value)}
-          maxLength={LIMITS.title}
-          placeholder="Para você"
-          autoFocus
-        />
-      </Field>
+    <form onSubmit={submit} className="space-y-14">
+      {/* STEP 1 — Sua mensagem */}
+      <Step number="01" icon={PenLine} label="Sua mensagem">
+        <Field
+          label="Título"
+          hint="Um chamado curto. Ex: 'Para o amor da minha vida'."
+          error={errors.title}
+        >
+          <Input
+            value={values.title}
+            onChange={(e) => update('title', e.target.value)}
+            maxLength={LIMITS.title}
+            placeholder="Para você"
+            autoFocus
+          />
+        </Field>
 
-      <Field
-        label="Mensagem"
-        hint="Escreva sem pressa. O que precisa ser dito?"
-        error={errors.content}
-      >
-        <Textarea
-          value={values.content}
-          onChange={(e) => update('content', e.target.value)}
-          maxLength={LIMITS.content}
-          rows={10}
-          placeholder="Comece a escrever sua carta..."
-        />
-        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{contentLength} / {LIMITS.content}</span>
-          <div className="h-1 w-32 overflow-hidden rounded-full bg-secondary">
-            <div
-              className="h-full bg-primary transition-all"
-              style={{ width: `${contentPct}%` }}
+        <Field
+          label="Mensagem"
+          hint="Escreva sem pressa. O que precisa ser dito?"
+          error={errors.content}
+        >
+          <Textarea
+            value={values.content}
+            onChange={(e) => update('content', e.target.value)}
+            maxLength={LIMITS.content}
+            rows={10}
+            placeholder="Comece a escrever sua carta…"
+          />
+          <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+            <span className="font-mono tabular-nums">
+              {contentLength} / {LIMITS.content}
+            </span>
+            <div className="h-1 w-20 overflow-hidden rounded-full bg-secondary sm:w-32">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-rose-400 transition-all"
+                style={{ width: `${contentPct}%` }}
+              />
+            </div>
+          </div>
+        </Field>
+
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Field label="De" hint="Como você se assina.">
+            <Input
+              value={values.senderName}
+              onChange={(e) => update('senderName', e.target.value)}
+              maxLength={LIMITS.name}
+              placeholder="Seu nome"
+            />
+          </Field>
+          <Field label="Para" hint="Quem vai abrir a carta.">
+            <Input
+              value={values.recipientName}
+              onChange={(e) => update('recipientName', e.target.value)}
+              maxLength={LIMITS.name}
+              placeholder="Nome da pessoa"
+            />
+          </Field>
+        </div>
+      </Step>
+
+      {/* STEP 2 — Visual */}
+      <Step number="02" icon={Palette} label="Visual">
+        <Field
+          label="Tema"
+          hint="Cada tema muda cores, tipografia e decorações."
+          error={errors.theme}
+        >
+          <ThemePicker
+            value={values.theme}
+            onChange={(t) => update('theme', t)}
+          />
+        </Field>
+
+        <Field
+          label="Capa"
+          optional
+          hint="Uma foto que conte o início da história. Arraste no preview para enquadrar."
+          error={errors.coverImage}
+        >
+          <CoverUploader
+            value={values.coverImage}
+            onChange={(url) => update('coverImage', url)}
+            position={values.coverPosition}
+            onPositionChange={(pos) => update('coverPosition', pos)}
+          />
+        </Field>
+
+        <Field
+          label="Momentos"
+          optional
+          hint={`Até ${LIMITS.moments} fotos com uma legenda em cada — viram um carrossel na carta.`}
+          error={errors.moments}
+        >
+          <MomentsUploader
+            value={values.moments}
+            onChange={(next) => update('moments', next)}
+          />
+        </Field>
+      </Step>
+
+      {/* STEP 3 — Toque especial */}
+      <Step number="03" icon={Sparkles} label="Toque especial">
+        <Field
+          label="Música"
+          optional
+          hint="Cole um link do YouTube — toca automaticamente quando a carta abrir."
+          error={errors.musicUrl}
+        >
+          <div className="relative">
+            <Music className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={values.musicUrl}
+              onChange={(e) => update('musicUrl', e.target.value)}
+              placeholder="https://youtube.com/watch?v=..."
+              className="pl-11"
             />
           </div>
-        </div>
-      </Field>
-
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Field label="De" hint="Como você se assina">
-          <Input
-            value={values.senderName}
-            onChange={(e) => update('senderName', e.target.value)}
-            maxLength={LIMITS.name}
-            placeholder="Seu nome"
-          />
         </Field>
-        <Field label="Para" hint="Para quem é a carta">
-          <Input
-            value={values.recipientName}
-            onChange={(e) => update('recipientName', e.target.value)}
-            maxLength={LIMITS.name}
-            placeholder="Nome da pessoa"
-          />
-        </Field>
-      </div>
 
-      <Field
-        label="Tema visual"
-        hint="Cada tema muda cores, tipografia e decorações."
-        error={errors.theme}
-      >
-        <ThemePicker
-          value={values.theme}
-          onChange={(t) => update('theme', t)}
-        />
-      </Field>
-
-      <Field
-        label="Capa (opcional)"
-        hint="Uma foto que conte o início da história. Depois de enviar, arraste dentro do preview para enquadrar."
-        error={errors.coverImage}
-      >
-        <CoverUploader
-          value={values.coverImage}
-          onChange={(url) => update('coverImage', url)}
-          position={values.coverPosition}
-          onPositionChange={(pos) => update('coverPosition', pos)}
-        />
-      </Field>
-
-      <Field
-        label="Momentos (opcional)"
-        hint={`Até ${LIMITS.moments} fotos com uma legenda em cada — viram um carrossel na carta.`}
-        error={errors.moments}
-      >
-        <MomentsUploader
-          value={values.moments}
-          onChange={(next) => update('moments', next)}
-        />
-      </Field>
-
-      <Field
-        label="Música (opcional)"
-        hint="Cole um link do YouTube — toca automaticamente quando a carta abrir."
-        error={errors.musicUrl}
-      >
-        <div className="relative">
-          <Music className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={values.musicUrl}
-            onChange={(e) => update('musicUrl', e.target.value)}
-            placeholder="https://youtube.com/watch?v=..."
-            className="pl-11"
-          />
-        </div>
-      </Field>
-
-      <fieldset className="rounded-3xl border border-border/60 bg-secondary/30 p-6">
-        <legend className="-mt-9 inline-flex items-center gap-2 rounded-full bg-background px-4 py-1 text-sm font-medium">
-          <Timer className="h-3 w-3" /> Timer
-        </legend>
-
-        <div className="space-y-6">
+        <Card icon={Timer} title="Timer">
           <Field
             label="Tipo"
             hint="Adicione um contador animado na carta."
           >
             <div className="grid grid-cols-3 gap-2">
-              {TIMER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => update('timerType', opt.value)}
-                  className={[
-                    'rounded-xl border px-3 py-3 text-center text-sm transition-all',
-                    values.timerType === opt.value
-                      ? 'border-primary bg-primary/10 font-medium text-primary'
-                      : 'border-border bg-background text-muted-foreground hover:border-primary/40',
-                  ].join(' ')}
-                >
-                  {opt.label}
-                  {opt.desc && (
-                    <span className="mt-0.5 block text-xs opacity-60">{opt.desc}</span>
-                  )}
-                </button>
-              ))}
+              {TIMER_OPTIONS.map((opt) => {
+                const active = values.timerType === opt.value
+                const Icon = opt.icon
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => update('timerType', opt.value)}
+                    className={[
+                      'group relative flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center text-sm transition-all',
+                      active
+                        ? 'border-primary bg-primary/10 text-primary shadow-soft'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground',
+                    ].join(' ')}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="font-medium leading-none">{opt.label}</span>
+                    {opt.desc && (
+                      <span className="text-[0.65rem] leading-none opacity-70">
+                        {opt.desc}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </Field>
 
           {values.timerType && (
-            <>
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
               <Field
                 label="Título do timer"
-                hint='Ex: "Falta para o nosso aniversário" ou "Namorando há"'
+                hint='Ex: "Falta para o nosso aniversário" ou "Namorando há".'
                 error={errors.timerLabel}
               >
                 <Input
@@ -292,20 +325,17 @@ export function CreateLetterForm() {
                   onChange={(e) => update('timerDate', e.target.value)}
                 />
               </Field>
-            </>
+            </motion.div>
           )}
-        </div>
-      </fieldset>
+        </Card>
+      </Step>
 
-      <fieldset className="rounded-3xl border border-border/60 bg-secondary/30 p-6">
-        <legend className="-mt-9 inline-flex items-center gap-2 rounded-full bg-background px-4 py-1 text-sm font-medium">
-          <Sparkles className="h-3 w-3" /> Avançado
-        </legend>
-
-        <div className="space-y-6">
-          <div className="flex items-center justify-between gap-4">
+      {/* STEP 4 — Avançado */}
+      <Step number="04" icon={Settings2} label="Avançado">
+        <Card icon={Lock} title="Privacidade e agenda">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <Label>Carta privada</Label>
+              <Label className="text-base">Carta privada</Label>
               <p className="mt-1 text-xs text-muted-foreground">
                 Exige senha para ser aberta.
               </p>
@@ -319,22 +349,29 @@ export function CreateLetterForm() {
           </div>
 
           {isPrivate && (
-            <Field label="Senha" hint="Mínimo 4 caracteres." error={errors.password}>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="password"
-                  value={values.password}
-                  onChange={(e) => update('password', e.target.value)}
-                  placeholder="••••••••"
-                  className="pl-11"
-                />
-              </div>
-            </Field>
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Field label="Senha" hint="Mínimo 4 caracteres." error={errors.password}>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    value={values.password}
+                    onChange={(e) => update('password', e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-11"
+                  />
+                </div>
+              </Field>
+            </motion.div>
           )}
 
           <Field
-            label="Data de desbloqueio (opcional)"
+            label="Data de desbloqueio"
+            optional
             hint="A carta só abre a partir dessa data."
             error={errors.unlockDate}
           >
@@ -346,63 +383,115 @@ export function CreateLetterForm() {
           </Field>
 
           <Field
-            label="Link personalizado (opcional)"
-            hint="Letras, números e hífens. Ex: para-meu-amor"
+            label="Link personalizado"
+            optional
+            hint="Letras, números e hífens. Ex: para-meu-amor."
             error={errors.customSlug}
           >
-            <div className="flex items-center rounded-xl border border-input bg-background pl-3 text-sm shadow-sm">
-              <span className="text-muted-foreground">specialday.com/c/</span>
+            <div className="flex items-center overflow-hidden rounded-xl border border-input bg-background pl-3 text-sm shadow-sm transition-shadow focus-within:ring-2 focus-within:ring-ring/40">
+              <span className="select-none whitespace-nowrap text-muted-foreground">
+                specialday.com/c/
+              </span>
               <input
                 value={values.customSlug}
                 onChange={(e) => update('customSlug', e.target.value)}
                 placeholder="para-meu-amor"
-                className="h-11 flex-1 bg-transparent px-1 outline-none placeholder:text-muted-foreground"
+                className="h-11 min-w-0 flex-1 bg-transparent px-1 outline-none placeholder:text-muted-foreground"
               />
             </div>
           </Field>
-        </div>
-      </fieldset>
+        </Card>
+      </Step>
 
       {submitError && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+          className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
         >
           {submitError}
         </motion.div>
       )}
 
-      <div className="sticky bottom-4 z-20 -mx-2 sm:relative sm:bottom-auto sm:mx-0">
+      {/* Submit — sticky em mobile com fade, relative em desktop */}
+      <div className="sticky bottom-0 z-20 -mx-6 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-4 pt-8 sm:relative sm:bottom-auto sm:mx-0 sm:bg-none sm:p-0">
         <Button
           type="submit"
           size="lg"
-          className="w-full"
           disabled={submitting}
+          className="group w-full rounded-full shadow-soft transition-all hover:shadow-glow disabled:hover:shadow-soft"
         >
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Criando sua carta...
+              <span>Criando sua carta…</span>
             </>
           ) : (
             <>
-              <MailPlus className="h-4 w-4" />
-              Gerar carta e link
+              <MailPlus className="h-4 w-4 transition-transform group-hover:rotate-[-6deg]" />
+              <span>Gerar carta e link</span>
             </>
           )}
         </Button>
+        <p className="mt-3 text-center text-xs text-muted-foreground sm:mt-4">
+          Sem cadastro · Sem cartão · Edita depois com o token secreto
+        </p>
       </div>
     </form>
   )
 }
 
-function Field({ label, hint, error, children }) {
+function Step({ number, icon: Icon, label, children }) {
+  return (
+    <section className="space-y-6">
+      <header className="flex items-center gap-3">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-rose-200/40 text-primary ring-1 ring-primary/15">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="flex items-baseline gap-2">
+          <span className="font-mono text-xs font-medium tracking-wider text-primary/70">
+            {number}
+          </span>
+          <h2 className="font-display text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+            {label}
+          </h2>
+        </div>
+        <span className="ml-2 h-px flex-1 bg-border/60" />
+      </header>
+      <div className="space-y-8 pl-0 sm:pl-12">{children}</div>
+    </section>
+  )
+}
+
+function Card({ icon: Icon, title, children }) {
+  return (
+    <section className="relative rounded-3xl border border-border/60 bg-secondary/30 p-6 pt-9">
+      <header className="absolute -top-3.5 left-6 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1 text-xs font-medium shadow-sm">
+        <Icon className="h-3 w-3 text-primary" />
+        <span>{title}</span>
+      </header>
+      <div className="space-y-6">{children}</div>
+    </section>
+  )
+}
+
+function Field({ label, hint, error, optional, children }) {
   return (
     <div className="space-y-2">
-      <div>
-        <Label className="block">{label}</Label>
-        {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <Label className="block text-foreground">
+          {label}
+          {optional && (
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+              (opcional)
+            </span>
+          )}
+        </Label>
+        {hint && (
+          <p className="text-xs leading-snug text-muted-foreground sm:max-w-[60%] sm:text-right">
+            {hint}
+          </p>
+        )}
       </div>
       {children}
       {error && <p className="text-sm text-destructive">{error}</p>}
