@@ -41,11 +41,32 @@ export async function POST(req) {
     caption: sanitizeText(m.caption),
   }))
 
+  if (data.shippingAddress) {
+    const a = data.shippingAddress
+    data.shippingAddress = {
+      ...a,
+      street: sanitizeText(a.street),
+      number: sanitizeText(a.number),
+      complement: sanitizeText(a.complement),
+      neighborhood: sanitizeText(a.neighborhood),
+      city: sanitizeText(a.city),
+      recipient: sanitizeText(a.recipient),
+    }
+  }
+
   try {
     const row = await createLetter(data)
     return NextResponse.json({
       slug: row.slug,
       editToken: row.edit_token,
+      physicalOrder: row.physical_photo_enabled
+        ? {
+            status: row.shipping_status,
+            costCents: row.shipping_cost_cents,
+            region: row.shipping_region,
+            address: row.shipping_address,
+          }
+        : null,
     })
   } catch (err) {
     return serverErrorResponse(

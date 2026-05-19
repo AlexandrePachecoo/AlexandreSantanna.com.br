@@ -10,6 +10,7 @@ import {
   Lock,
   MailPlus,
   Music,
+  Package,
   Palette,
   PenLine,
   Settings2,
@@ -25,6 +26,7 @@ import { Switch } from '@/components/ui/switch'
 import { ThemePicker } from '@/components/forms/ThemePicker'
 import { CoverUploader } from '@/components/forms/CoverUploader'
 import { MomentsUploader } from '@/components/forms/MomentsUploader'
+import { PhysicalPhotoCard } from '@/components/forms/PhysicalPhotoCard'
 import { TEMPLATES } from '@/constants/templates'
 import { LIMITS } from '@/lib/validators'
 import { SuccessScreen } from '@/components/shared/SuccessScreen'
@@ -46,6 +48,18 @@ const INITIAL = {
   timerType: '',
   timerLabel: '',
   timerDate: '',
+  physicalPhotoEnabled: false,
+  physicalPhotoUrl: null,
+  shippingAddress: {
+    cep: '',
+    street: '',
+    number: '',
+    complement: '',
+    neighborhood: '',
+    city: '',
+    uf: '',
+    recipient: '',
+  },
 }
 
 const TIMER_OPTIONS = [
@@ -117,6 +131,7 @@ export function CreateLetterForm() {
       <SuccessScreen
         slug={result.slug}
         editToken={result.editToken}
+        physicalOrder={result.physicalOrder}
         onReset={() => {
           setValues(INITIAL)
           setResult(null)
@@ -401,6 +416,11 @@ export function CreateLetterForm() {
             </div>
           </Field>
         </Card>
+      </Step>
+
+      {/* STEP 5 — Foto física */}
+      <Step number="05" icon={Package} label="Foto física">
+        <PhysicalPhotoCard values={values} update={update} errors={errors} />
       </Step>
 
       {submitError && (
