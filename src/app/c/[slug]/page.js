@@ -61,8 +61,10 @@ export default async function LetterPage({ params }) {
   if (row.payment_status === 'awaiting_payment') {
     return (
       <AwaitingPayment
+        slug={slug}
         title={row.title}
-        paymentUrl={row.payment_url}
+        brCode={row.payment_pix_brcode}
+        qrBase64={row.payment_pix_qr_base64}
         expiresAt={row.payment_expires_at}
       />
     )

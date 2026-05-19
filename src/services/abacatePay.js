@@ -1,11 +1,12 @@
 // Cliente da API do AbacatePay (server-side apenas — usa API key bearer).
 // Docs: https://docs.abacatepay.com/
 //
-// Fluxo:
-//   1. createBilling() → cria cobrança PIX, devolve { id, url } pro front redirecionar.
-//   2. usuário paga.
-//   3. AbacatePay chama nosso webhook (/api/webhooks/abacatepay).
-//   4. Validamos o webhookSecret e marcamos a carta como paga.
+// Fluxo PIX:
+//   1. createPixCharge() → cria PIX, devolve { id, brCode, brCodeBase64, expiresAt }.
+//   2. Front exibe QR Code + copia-cola na nossa página de aguardando pagamento.
+//   3. Usuário paga.
+//   4. AbacatePay chama nosso webhook (/api/webhooks/abacatepay).
+//   5. Validamos o webhookSecret e marcamos a carta como paga.
 
 const BASE_URL = 'https://api.abacatepay.com'
 
@@ -27,19 +28,17 @@ export function getWebhookSecret() {
   return process.env.ABACATEPAY_WEBHOOK_SECRET || ''
 }
 
-// Cria uma cobrança PIX no AbacatePay.
-// amount em centavos. externalId é o slug da carta (usado no webhook para
-// localizar o pedido — alternativa ao payment_id retornado).
+// Cria uma cobrança PIX inline via /v1/transparents/create.
+// amountCents é o valor total em centavos. externalId é o slug — usado pelo
+// webhook para localizar o pedido. expiresInSeconds default 20min.
 //
-// returnUrl: para onde o checkout do AbacatePay redireciona após pagamento.
-// completionUrl: usuário cai aqui ao concluir o pagamento.
-export async function createBilling({
+// Retorna o brCode (PIX copia-e-cola) e a imagem base64 do QR.
+export async function createPixCharge({
   amountCents,
   description,
   externalId,
+  expiresInSeconds = 20 * 60,
   customer,
-  returnUrl,
-  completionUrl,
   timeoutMs = 8000,
 } = {}) {
   const config = getConfig()
@@ -53,7 +52,7 @@ export async function createBilling({
   const timer = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    const res = await fetch(`${BASE_URL}/v1/billing/create`, {
+    const res = await fetch(`${BASE_URL}/v1/transparents/create`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
@@ -61,21 +60,17 @@ export async function createBilling({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        frequency: 'ONE_TIME',
-        methods: ['PIX'],
-        products: [
-          {
-            externalId,
-            name: description || 'specialDay — Carta',
-            description: description || 'specialDay — Carta',
-            quantity: 1,
-            price: amountCents,
-          },
-        ],
-        returnUrl: returnUrl || undefined,
-        completionUrl: completionUrl || undefined,
-        customer: customer || undefined,
-        externalId,
+        method: 'PIX',
+        data: {
+          amount: amountCents,
+          expiresIn: expiresInSeconds,
+          description: description || 'specialDay — Carta',
+          externalId,
+          // customer é opcional para PIX. Só inclui se foi passado completo.
+          ...(customer && customer.email && customer.name
+            ? { customer }
+            : {}),
+        },
       }),
       signal: controller.signal,
     })
@@ -91,17 +86,18 @@ export async function createBilling({
       }
     }
 
-    // AbacatePay devolve `{ data: { id, url, ... } }` (formato padrão da API v1).
     const data = body.data || body
-    const id = data?.id || data?.billingId || null
-    const url = data?.url || data?.checkoutUrl || data?.paymentUrl || null
+    const id = data?.id || null
+    const brCode = data?.brCode || data?.br_code || null
+    const brCodeBase64 = data?.brCodeBase64 || data?.br_code_base64 || null
     const expiresAt = data?.expiresAt || data?.expires_at || null
+    const amount = data?.amount
 
-    if (!id || !url) {
+    if (!id || !brCode) {
       return { ok: false, reason: 'invalid_response', details: body }
     }
 
-    return { ok: true, id, url, expiresAt }
+    return { ok: true, id, brCode, brCodeBase64, expiresAt, amount }
   } catch (err) {
     return {
       ok: false,
@@ -113,9 +109,8 @@ export async function createBilling({
   }
 }
 
-// Consulta status de uma cobrança específica (usado para reconciliar manualmente
-// quando webhook não chega).
-export async function getBilling(id, { timeoutMs = 5000 } = {}) {
+// Consulta status de um PIX específico (reconciliação manual).
+export async function getPixCharge(id, { timeoutMs = 5000 } = {}) {
   const config = getConfig()
   if (!config) return { ok: false, reason: 'not_configured' }
 
@@ -123,13 +118,16 @@ export async function getBilling(id, { timeoutMs = 5000 } = {}) {
   const timer = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    const res = await fetch(`${BASE_URL}/v1/billing/get?id=${encodeURIComponent(id)}`, {
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        Accept: 'application/json',
-      },
-      signal: controller.signal,
-    })
+    const res = await fetch(
+      `${BASE_URL}/v1/transparents/get?id=${encodeURIComponent(id)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      }
+    )
 
     const body = await res.json().catch(() => null)
     if (!res.ok || !body) return { ok: false, reason: 'api_error', status: res.status }
