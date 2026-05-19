@@ -8,9 +8,8 @@ import {
   pickCheapest,
   quoteShipping,
 } from '@/services/melhorEnvio'
-import { createBilling, isAbacatePayConfigured } from '@/services/abacatePay'
-import { computeAmountCents } from '@/constants/pricing'
-import { absoluteUrl } from '@/lib/utils'
+import { createPixCharge, isAbacatePayConfigured } from '@/services/abacatePay'
+import { computeAmountCents, PAYMENT_EXPIRY_MINUTES } from '@/constants/pricing'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -94,33 +93,36 @@ export async function POST(req) {
     )
   }
 
-  // Cria a cobrança no AbacatePay. Se falhar, devolvemos a carta criada (em
-  // awaiting_payment) sem URL de pagamento — admin pode marcar paid manualmente
-  // ou recriar a cobrança.
-  let paymentUrl = null
+  // Cria a cobrança PIX no AbacatePay. Se falhar, a carta fica em awaiting_payment
+  // sem QR e o admin pode marcar como paga manualmente.
+  let pixData = null
   if (isAbacatePayConfigured()) {
     const description = `specialDay — Carta "${row.title}"`
-    const billing = await createBilling({
+    const charge = await createPixCharge({
       amountCents,
       description,
       externalId: row.slug,
-      returnUrl: absoluteUrl(`/c/${row.slug}`),
-      completionUrl: absoluteUrl(`/c/${row.slug}?paid=1`),
+      expiresInSeconds: PAYMENT_EXPIRY_MINUTES * 60,
     })
-    if (billing.ok) {
-      paymentUrl = billing.url
+    if (charge.ok) {
+      pixData = {
+        brCode: charge.brCode,
+        brCodeBase64: charge.brCodeBase64,
+        expiresAt: charge.expiresAt,
+      }
       try {
         await attachPayment(row.id, {
-          paymentId: billing.id,
-          paymentUrl: billing.url,
+          paymentId: charge.id,
+          pixBrCode: charge.brCode,
+          pixQrBase64: charge.brCodeBase64,
         })
       } catch (err) {
         logServerError('attachPayment', err, { letterId: row.id })
       }
     } else {
-      logServerError('createBilling', new Error(billing.reason || 'unknown'), {
-        details: billing.details,
-        status: billing.status,
+      logServerError('createPixCharge', new Error(charge.reason || 'unknown'), {
+        details: charge.details,
+        status: charge.status,
         letterId: row.id,
       })
     }
@@ -129,7 +131,7 @@ export async function POST(req) {
   return NextResponse.json({
     slug: row.slug,
     editToken: row.edit_token,
-    paymentUrl,
+    pix: pixData,
     amountCents,
     paymentExpiresAt: row.payment_expires_at,
     physicalOrder: row.physical_photo_enabled

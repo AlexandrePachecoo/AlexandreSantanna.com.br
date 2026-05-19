@@ -6,7 +6,7 @@ import { PAYMENT_EXPIRY_MINUTES } from '@/constants/pricing'
 const TABLE = 'letters'
 
 const PUBLIC_COLUMNS =
-  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, cover_position, moments, music_url, visibility, unlock_date, views, created_at, updated_at, timer_type, timer_label, timer_date, physical_photo_enabled, physical_photo_url, shipping_cost_cents, shipping_region, shipping_status, payment_status, payment_amount_cents, payment_url, payment_expires_at, payment_paid_at'
+  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, cover_position, moments, music_url, visibility, unlock_date, views, created_at, updated_at, timer_type, timer_label, timer_date, physical_photo_enabled, physical_photo_url, shipping_cost_cents, shipping_region, shipping_status, payment_status, payment_amount_cents, payment_url, payment_expires_at, payment_paid_at, payment_pix_brcode, payment_pix_qr_base64'
 
 // shipping_address contém PII e só aparece em FULL_COLUMNS (usado pelo dono via edit_token).
 const FULL_COLUMNS = `${PUBLIC_COLUMNS}, edit_token, password_hash, shipping_address, payment_id, payment_provider`
@@ -61,13 +61,16 @@ export async function createLetter(payload) {
   return data
 }
 
-// Salva o id e a URL do checkout retornados pelo gateway após createLetter.
+// Salva o id e os dados PIX retornados pelo gateway após createLetter.
 // Separado da inserção pra evitar perder a carta caso o gateway falhe.
-export async function attachPayment(letterId, { paymentId, paymentUrl }) {
+export async function attachPayment(letterId, { paymentId, pixBrCode, pixQrBase64 }) {
   const supabase = getSupabase()
+  const update = { payment_id: paymentId }
+  if (pixBrCode !== undefined) update.payment_pix_brcode = pixBrCode
+  if (pixQrBase64 !== undefined) update.payment_pix_qr_base64 = pixQrBase64
   const { error } = await supabase
     .from(TABLE)
-    .update({ payment_id: paymentId, payment_url: paymentUrl })
+    .update(update)
     .eq('id', letterId)
   if (error) throw error
 }
@@ -336,6 +339,8 @@ export function toEditableLetter(row) {
     paymentUrl: row.payment_url,
     paymentExpiresAt: row.payment_expires_at,
     paymentPaidAt: row.payment_paid_at,
+    paymentPixBrCode: row.payment_pix_brcode,
+    paymentPixQrBase64: row.payment_pix_qr_base64,
   }
 }
 

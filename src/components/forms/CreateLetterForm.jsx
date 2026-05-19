@@ -130,14 +130,12 @@ export function CreateLetterForm() {
         setPreviewOpen(false)
         return
       }
-      // Pagamento direto: redireciona pro checkout do AbacatePay.
-      // Quem volta cai em /c/:slug?paid=1 (handleado pelo viewer + webhook).
-      if (json.paymentUrl) {
-        window.location.href = json.paymentUrl
+      // Pagamento PIX inline: redireciona pra /c/:slug onde a tela
+      // AwaitingPayment mostra o QR e o copia-e-cola.
+      if (json.slug) {
+        window.location.href = `/c/${json.slug}`
         return
       }
-      // Sem URL de pagamento (AbacatePay não configurado / falhou): mostra tela
-      // de sucesso com aviso de pagamento pendente.
       setResult(json)
       setPreviewOpen(false)
     } catch {
