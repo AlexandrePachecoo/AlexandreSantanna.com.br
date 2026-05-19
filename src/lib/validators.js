@@ -1,4 +1,5 @@
 import { THEME_IDS } from '@/constants/themes'
+import { lookupShipping, normalizeCep } from '@/lib/shipping'
 
 export const LIMITS = {
   title: 80,
@@ -7,6 +8,14 @@ export const LIMITS = {
   password: 64,
   moments: 10,
   momentCaption: 140,
+  address: {
+    street: 120,
+    number: 20,
+    complement: 80,
+    neighborhood: 80,
+    city: 80,
+    recipient: 80,
+  },
 }
 
 const COVER_POSITION_RE = /^\d{1,3}% \d{1,3}%$/
@@ -89,6 +98,56 @@ export function validateLetterPayload(body, { partial = false } = {}) {
     }
   }
 
+  const physicalPhotoEnabled = !!body?.physicalPhotoEnabled
+  const physicalPhotoUrl = trimOrNull(body?.physicalPhotoUrl, 600)
+  if (physicalPhotoUrl && !isValidUrl(physicalPhotoUrl) && !physicalPhotoUrl.startsWith('letters/')) {
+    errors.physicalPhotoUrl = 'Foto inválida.'
+  }
+
+  let shippingAddress = null
+  let shippingCostCents = null
+  let shippingRegion = null
+  let shippingStatus = null
+
+  if (physicalPhotoEnabled) {
+    if (!physicalPhotoUrl && !coverImage) {
+      errors.physicalPhotoUrl = 'Selecione uma foto para imprimir.'
+    }
+
+    const raw = body?.shippingAddress || {}
+    const addr = {
+      cep: normalizeCep(raw.cep),
+      street: trimOrNull(raw.street, LIMITS.address.street) || '',
+      number: trimOrNull(raw.number, LIMITS.address.number) || '',
+      complement: trimOrNull(raw.complement, LIMITS.address.complement) || '',
+      neighborhood: trimOrNull(raw.neighborhood, LIMITS.address.neighborhood) || '',
+      city: trimOrNull(raw.city, LIMITS.address.city) || '',
+      uf: trimOrNull(raw.uf, 2)?.toUpperCase() || '',
+      recipient: trimOrNull(raw.recipient, LIMITS.address.recipient) || '',
+    }
+
+    if (addr.cep.length !== 8) errors.shippingCep = 'CEP inválido.'
+    if (!addr.recipient) errors.shippingRecipient = 'Informe o destinatário.'
+    if (!addr.street) errors.shippingStreet = 'Informe a rua.'
+    if (!addr.number) errors.shippingNumber = 'Informe o número.'
+    if (!addr.neighborhood) errors.shippingNeighborhood = 'Informe o bairro.'
+    if (!addr.city) errors.shippingCity = 'Informe a cidade.'
+    if (!/^[A-Z]{2}$/.test(addr.uf)) errors.shippingUf = 'UF inválida.'
+
+    if (!errors.shippingCep) {
+      const ship = lookupShipping(addr.cep)
+      if (!ship.ok) {
+        errors.shippingCep = ship.error
+      } else {
+        shippingCostCents = ship.cost
+        shippingRegion = ship.region
+      }
+    }
+
+    shippingAddress = addr
+    shippingStatus = 'pending'
+  }
+
   return {
     valid: Object.keys(errors).length === 0,
     errors,
@@ -109,6 +168,12 @@ export function validateLetterPayload(body, { partial = false } = {}) {
       timerType,
       timerLabel,
       timerDate: timerDateIso,
+      physicalPhotoEnabled,
+      physicalPhotoUrl: physicalPhotoEnabled ? physicalPhotoUrl : null,
+      shippingAddress,
+      shippingCostCents,
+      shippingRegion,
+      shippingStatus,
     },
   }
 }

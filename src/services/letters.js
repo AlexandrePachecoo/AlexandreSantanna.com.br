@@ -5,9 +5,10 @@ import { hashPassword } from '@/lib/password'
 const TABLE = 'letters'
 
 const PUBLIC_COLUMNS =
-  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, cover_position, moments, music_url, visibility, unlock_date, views, created_at, updated_at, timer_type, timer_label, timer_date'
+  'id, slug, title, content, sender_name, recipient_name, theme, cover_image, cover_position, moments, music_url, visibility, unlock_date, views, created_at, updated_at, timer_type, timer_label, timer_date, physical_photo_enabled, physical_photo_url, shipping_cost_cents, shipping_region, shipping_status'
 
-const FULL_COLUMNS = `${PUBLIC_COLUMNS}, edit_token, password_hash`
+// shipping_address contém PII e só aparece em FULL_COLUMNS (usado pelo dono via edit_token).
+const FULL_COLUMNS = `${PUBLIC_COLUMNS}, edit_token, password_hash, shipping_address`
 
 export async function createLetter(payload) {
   const supabase = getSupabase()
@@ -34,6 +35,12 @@ export async function createLetter(payload) {
     timer_type: payload.timerType ?? null,
     timer_label: payload.timerLabel ?? null,
     timer_date: payload.timerDate ?? null,
+    physical_photo_enabled: !!payload.physicalPhotoEnabled,
+    physical_photo_url: payload.physicalPhotoUrl ?? null,
+    shipping_address: payload.shippingAddress ?? null,
+    shipping_cost_cents: payload.shippingCostCents ?? null,
+    shipping_region: payload.shippingRegion ?? null,
+    shipping_status: payload.shippingStatus ?? null,
   }
 
   const { data, error } = await supabase
@@ -92,6 +99,9 @@ export async function updateLetterByEditToken(token, patch) {
   if (patch.password !== undefined) {
     update.password_hash = patch.password ? await hashPassword(patch.password) : null
   }
+
+  // Pedido de foto física não é editável pela rota de edição na v1.
+  // Mudanças aqui podem invalidar frete já calculado e snapshot do pedido.
 
   const { data, error } = await supabase
     .from(TABLE)
@@ -170,6 +180,8 @@ export function toPublicLetter(row, { includeContent = true } = {}) {
     timerType: row.timer_type,
     timerLabel: row.timer_label,
     timerDate: row.timer_date,
+    physicalPhotoEnabled: !!row.physical_photo_enabled,
+    shippingStatus: row.shipping_status,
   }
   if (includeContent) out.content = row.content
   return out
@@ -181,5 +193,9 @@ export function toEditableLetter(row) {
     ...toPublicLetter(row),
     content: row.content,
     editToken: row.edit_token,
+    physicalPhotoUrl: row.physical_photo_url,
+    shippingAddress: row.shipping_address || null,
+    shippingCostCents: row.shipping_cost_cents,
+    shippingRegion: row.shipping_region,
   }
 }

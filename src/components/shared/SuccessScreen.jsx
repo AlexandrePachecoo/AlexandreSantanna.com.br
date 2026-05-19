@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Key, Link as LinkIcon, MailPlus, ShieldAlert } from 'lucide-react'
+import { ArrowRight, Key, Link as LinkIcon, MailPlus, Package, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CopyButton } from '@/components/shared/CopyButton'
 import { ShareButtons } from '@/components/shared/ShareButtons'
 import { absoluteUrl } from '@/lib/utils'
+import { formatBRL } from '@/lib/shipping'
 
-export function SuccessScreen({ slug, editToken, onReset }) {
+export function SuccessScreen({ slug, editToken, physicalOrder, onReset }) {
   const shareUrl = absoluteUrl(`/c/${slug}`)
   const editUrl = absoluteUrl(`/edit/${editToken}`)
 
@@ -73,6 +74,43 @@ export function SuccessScreen({ slug, editToken, onReset }) {
           </Button>
         </div>
       </div>
+
+      {physicalOrder && (
+        <div className="rounded-3xl border border-rose-200/60 bg-rose-50/60 p-6 shadow-sm dark:border-rose-500/30 dark:bg-rose-500/10">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-300">
+              <Package className="h-4 w-4" /> Foto física a caminho
+            </div>
+            <Badge className="border border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-500/20 dark:text-amber-200">
+              Pedido pendente
+            </Badge>
+          </div>
+
+          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Frete</p>
+              <p className="font-medium text-foreground">
+                {formatBRL(physicalOrder.costCents)} · {physicalOrder.region}
+              </p>
+            </div>
+            {physicalOrder.address && (
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Entrega para</p>
+                <p className="truncate font-medium text-foreground">
+                  {physicalOrder.address.recipient}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {physicalOrder.address.street}, {physicalOrder.address.number} — {physicalOrder.address.city}/{physicalOrder.address.uf}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <p className="mt-4 text-xs text-rose-800/80 dark:text-rose-200/80">
+            Ainda não há cobrança. A gente confirma os detalhes e cobra antes de imprimir.
+          </p>
+        </div>
+      )}
 
       <div className="text-center">
         <button

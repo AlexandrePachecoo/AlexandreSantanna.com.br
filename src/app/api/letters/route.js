@@ -3,6 +3,11 @@ import { createLetter } from '@/services/letters'
 import { validateLetterPayload, sanitizeText } from '@/lib/validators'
 import { getClientIp, rateLimit, tickGC } from '@/lib/ratelimit'
 import { serverErrorResponse } from '@/lib/errors'
+import {
+  isMelhorEnvioConfigured,
+  pickCheapest,
+  quoteShipping,
+} from '@/services/melhorEnvio'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -41,11 +46,46 @@ export async function POST(req) {
     caption: sanitizeText(m.caption),
   }))
 
+  if (data.shippingAddress) {
+    const a = data.shippingAddress
+    data.shippingAddress = {
+      ...a,
+      street: sanitizeText(a.street),
+      number: sanitizeText(a.number),
+      complement: sanitizeText(a.complement),
+      neighborhood: sanitizeText(a.neighborhood),
+      city: sanitizeText(a.city),
+      recipient: sanitizeText(a.recipient),
+    }
+  }
+
+  // Recotação com Melhor Envio antes de persistir.
+  // O validator já populou shippingCostCents/Region pela tabela fixa;
+  // se a API responder, sobrescrevemos com o valor real.
+  if (data.physicalPhotoEnabled && data.shippingAddress?.cep && isMelhorEnvioConfigured()) {
+    const result = await quoteShipping({ toCep: data.shippingAddress.cep })
+    if (result.ok) {
+      const best = pickCheapest(result.options)
+      data.shippingCostCents = best.priceCents
+      data.shippingRegion = best.company
+        ? `${best.name} · ${best.company}`
+        : best.name
+    }
+  }
+
   try {
     const row = await createLetter(data)
     return NextResponse.json({
       slug: row.slug,
       editToken: row.edit_token,
+      physicalOrder: row.physical_photo_enabled
+        ? {
+            status: row.shipping_status,
+            costCents: row.shipping_cost_cents,
+            region: row.shipping_region,
+            address: row.shipping_address,
+          }
+        : null,
     })
   } catch (err) {
     return serverErrorResponse(
