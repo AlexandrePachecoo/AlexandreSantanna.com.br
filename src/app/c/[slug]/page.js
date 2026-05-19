@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import {
+  expireOldLetters,
   getLetterBySlug,
   incrementViews,
   toPublicLetter,
@@ -7,6 +8,7 @@ import {
 import { LetterRenderer } from '@/components/letter/LetterRenderer'
 import { LockedCountdown } from '@/components/letter/LockedCountdown'
 import { LetterClient } from './LetterClient'
+import { AwaitingPayment } from './AwaitingPayment'
 import { absoluteUrl } from '@/lib/utils'
 import { truncate } from '@/utils/format'
 
@@ -17,6 +19,11 @@ export async function generateMetadata({ params }) {
   const { slug } = await params
   const row = await getLetterBySlug(slug).catch(() => null)
   if (!row) return { title: 'Carta não encontrada' }
+
+  // Antes do pagamento confirmar, não vazamos detalhes da carta.
+  if (row.payment_status !== 'paid') {
+    return { title: 'Carta aguardando pagamento', robots: 'noindex' }
+  }
 
   const desc = row.recipient_name
     ? `Uma carta para ${row.recipient_name}.`
@@ -36,12 +43,30 @@ export async function generateMetadata({ params }) {
 
 export default async function LetterPage({ params }) {
   const { slug } = await params
+
+  // Marca cartas vencidas (fire-and-forget, antes de buscar a atual).
+  expireOldLetters().catch(() => {})
+
   const row = await getLetterBySlug(slug).catch((err) => {
     console.error('[c/slug] erro ao buscar carta', err)
     return null
   })
 
   if (!row) notFound()
+
+  if (row.payment_status === 'expired' || row.payment_status === 'refunded') {
+    notFound()
+  }
+
+  if (row.payment_status === 'awaiting_payment') {
+    return (
+      <AwaitingPayment
+        title={row.title}
+        paymentUrl={row.payment_url}
+        expiresAt={row.payment_expires_at}
+      />
+    )
+  }
 
   // Conta visualização (não bloqueia render se falhar).
   incrementViews(slug).catch(() => {})

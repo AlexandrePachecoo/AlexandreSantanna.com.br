@@ -14,7 +14,7 @@ import { slugify } from '@/lib/slug'
 import { useShippingQuote } from '@/hooks/useShippingQuote'
 import { getTheme } from '@/constants/themes'
 
-export function PhysicalPhotoCard({ values, update, errors = {} }) {
+export function PhysicalPhotoCard({ values, update, errors = {}, shippingState: externalShipping }) {
   const enabled = !!values.physicalPhotoEnabled
   const usingCustomPhoto = !!values.physicalPhotoUrl
 
@@ -32,7 +32,12 @@ export function PhysicalPhotoCard({ values, update, errors = {} }) {
     return custom ? absoluteUrl(`/c/${custom}`) : absoluteUrl('/c/preview')
   }, [values.customSlug])
 
-  const shippingState = useShippingQuote(values.shippingAddress?.cep)
+  // Aceita estado vindo do form pai (para não duplicar fetch); cai para hook próprio
+  // quando o card é usado isoladamente.
+  const internalShipping = useShippingQuote(
+    externalShipping ? null : values.shippingAddress?.cep
+  )
+  const shippingState = externalShipping || internalShipping
 
   async function pickPhoto(e) {
     const file = e.target.files?.[0]
@@ -191,8 +196,8 @@ export function PhysicalPhotoCard({ values, update, errors = {} }) {
           )}
 
           <p className="text-xs text-muted-foreground">
-            Você não é cobrado agora. O pedido fica como <strong>pendente</strong>;
-            a gente entra em contato pelo link de edição pra confirmar e cobrar.
+            Carta com foto física: <strong>R$ 19,90</strong> + frete. Pagamento via PIX
+            ao concluir a criação.
           </p>
         </motion.div>
       )}

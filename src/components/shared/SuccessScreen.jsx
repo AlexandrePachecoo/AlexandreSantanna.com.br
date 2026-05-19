@@ -2,15 +2,26 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Key, Link as LinkIcon, MailPlus, Package, ShieldAlert } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowRight,
+  Key,
+  Link as LinkIcon,
+  MailPlus,
+  Package,
+  ShieldAlert,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CopyButton } from '@/components/shared/CopyButton'
 import { ShareButtons } from '@/components/shared/ShareButtons'
 import { absoluteUrl } from '@/lib/utils'
-import { formatBRL } from '@/lib/shipping'
+import { formatBRL } from '@/constants/pricing'
 
-export function SuccessScreen({ slug, editToken, physicalOrder, onReset }) {
+// Renderiza tanto cartas já pagas (carta + foto física opcional) quanto cartas
+// criadas sem URL de pagamento (gateway não configurado) — nesse caso mostra
+// aviso de pagamento pendente.
+export function SuccessScreen({ slug, editToken, physicalOrder, paymentPending, onReset }) {
   const shareUrl = absoluteUrl(`/c/${slug}`)
   const editUrl = absoluteUrl(`/edit/${editToken}`)
 
@@ -32,9 +43,24 @@ export function SuccessScreen({ slug, editToken, physicalOrder, onReset }) {
           Sua carta está pronta.
         </h1>
         <p className="mt-3 text-muted-foreground">
-          Compartilhe o link da carta. Guarde o link de edição.
+          {paymentPending
+            ? 'Pagamento pendente — a carta só fica pública após confirmação.'
+            : 'Compartilhe o link da carta. Guarde o link de edição.'}
         </p>
       </div>
+
+      {paymentPending && (
+        <div className="rounded-3xl border border-amber-300/60 bg-amber-50 p-6 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10">
+          <div className="flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-300">
+            <AlertTriangle className="h-4 w-4" /> Pagamento pendente
+          </div>
+          <p className="mt-2 text-sm text-amber-900 dark:text-amber-100">
+            Não consegui gerar o link de pagamento agora. A carta foi salva como
+            <span className="font-semibold"> aguardando pagamento</span> e expira em 20
+            minutos. Guarde o link de edição abaixo para acompanhar.
+          </p>
+        </div>
+      )}
 
       <div className="rounded-3xl border border-border/60 bg-card p-6 shadow-sm">
         <div className="flex items-center gap-2 text-sm font-semibold">
@@ -82,7 +108,7 @@ export function SuccessScreen({ slug, editToken, physicalOrder, onReset }) {
               <Package className="h-4 w-4" /> Foto física a caminho
             </div>
             <Badge className="border border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-500/20 dark:text-amber-200">
-              Pedido pendente
+              {paymentPending ? 'Aguardando pagamento' : 'Pedido confirmado'}
             </Badge>
           </div>
 
@@ -105,10 +131,6 @@ export function SuccessScreen({ slug, editToken, physicalOrder, onReset }) {
               </div>
             )}
           </div>
-
-          <p className="mt-4 text-xs text-rose-800/80 dark:text-rose-200/80">
-            Ainda não há cobrança. A gente confirma os detalhes e cobra antes de imprimir.
-          </p>
         </div>
       )}
 
