@@ -51,8 +51,10 @@ export async function createPixCharge({
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
 
+  const endpoint = '/v1/pixQrCode/create'
+
   try {
-    const res = await fetch(`${BASE_URL}/v1/transparents/create`, {
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
@@ -60,28 +62,32 @@ export async function createPixCharge({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        method: 'PIX',
-        data: {
-          amount: amountCents,
-          expiresIn: expiresInSeconds,
-          description: description || 'specialDay — Carta',
-          externalId,
-          // customer é opcional para PIX. Só inclui se foi passado completo.
-          ...(customer && customer.email && customer.name
-            ? { customer }
-            : {}),
-        },
+        amount: amountCents,
+        expiresIn: expiresInSeconds,
+        description: description || 'specialDay — Carta',
+        // externalId é entregue no webhook em payload.data.metadata.externalId.
+        metadata: { externalId },
+        // customer é opcional para PIX. Só inclui se foi passado completo.
+        ...(customer && customer.email && customer.name ? { customer } : {}),
       }),
       signal: controller.signal,
     })
 
-    const body = await res.json().catch(() => null)
+    // Lê como texto primeiro para conseguir logar respostas não-JSON.
+    const raw = await res.text()
+    let body = null
+    try {
+      body = raw ? JSON.parse(raw) : null
+    } catch {
+      body = { raw: raw.slice(0, 500) }
+    }
 
     if (!res.ok || !body) {
       return {
         ok: false,
         reason: 'api_error',
         status: res.status,
+        endpoint,
         details: body,
       }
     }
@@ -119,7 +125,7 @@ export async function getPixCharge(id, { timeoutMs = 5000 } = {}) {
 
   try {
     const res = await fetch(
-      `${BASE_URL}/v1/transparents/get?id=${encodeURIComponent(id)}`,
+      `${BASE_URL}/v1/pixQrCode/check?id=${encodeURIComponent(id)}`,
       {
         headers: {
           Authorization: `Bearer ${config.apiKey}`,
