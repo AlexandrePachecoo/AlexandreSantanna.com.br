@@ -3,6 +3,11 @@ import { createLetter } from '@/services/letters'
 import { validateLetterPayload, sanitizeText } from '@/lib/validators'
 import { getClientIp, rateLimit, tickGC } from '@/lib/ratelimit'
 import { serverErrorResponse } from '@/lib/errors'
+import {
+  isMelhorEnvioConfigured,
+  pickCheapest,
+  quoteShipping,
+} from '@/services/melhorEnvio'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -51,6 +56,20 @@ export async function POST(req) {
       neighborhood: sanitizeText(a.neighborhood),
       city: sanitizeText(a.city),
       recipient: sanitizeText(a.recipient),
+    }
+  }
+
+  // Recotação com Melhor Envio antes de persistir.
+  // O validator já populou shippingCostCents/Region pela tabela fixa;
+  // se a API responder, sobrescrevemos com o valor real.
+  if (data.physicalPhotoEnabled && data.shippingAddress?.cep && isMelhorEnvioConfigured()) {
+    const result = await quoteShipping({ toCep: data.shippingAddress.cep })
+    if (result.ok) {
+      const best = pickCheapest(result.options)
+      data.shippingCostCents = best.priceCents
+      data.shippingRegion = best.company
+        ? `${best.name} · ${best.company}`
+        : best.name
     }
   }
 

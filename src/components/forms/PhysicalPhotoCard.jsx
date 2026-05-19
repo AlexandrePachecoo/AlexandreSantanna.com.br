@@ -11,7 +11,7 @@ import { AddressForm } from '@/components/forms/AddressForm'
 import { uploadImage } from '@/lib/uploadImage'
 import { absoluteUrl } from '@/lib/utils'
 import { slugify } from '@/lib/slug'
-import { lookupShipping, formatBRL } from '@/lib/shipping'
+import { useShippingQuote } from '@/hooks/useShippingQuote'
 import { getTheme } from '@/constants/themes'
 
 export function PhysicalPhotoCard({ values, update, errors = {} }) {
@@ -32,10 +32,7 @@ export function PhysicalPhotoCard({ values, update, errors = {} }) {
     return custom ? absoluteUrl(`/c/${custom}`) : absoluteUrl('/c/preview')
   }, [values.customSlug])
 
-  const shipping = useMemo(() => {
-    if (!values.shippingAddress?.cep) return null
-    return lookupShipping(values.shippingAddress.cep)
-  }, [values.shippingAddress?.cep])
+  const shippingState = useShippingQuote(values.shippingAddress?.cep)
 
   async function pickPhoto(e) {
     const file = e.target.files?.[0]
@@ -165,22 +162,28 @@ export function PhysicalPhotoCard({ values, update, errors = {} }) {
             />
           </div>
 
-          {shipping?.ok ? (
+          {shippingState.loading ? (
+            <div className="flex items-center gap-2 rounded-2xl border border-border/60 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Calculando frete…
+            </div>
+          ) : shippingState.quote ? (
             <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-background/70 px-4 py-3 text-sm">
               <div>
                 <p className="font-medium text-foreground">
-                  Frete para {shipping.label}
+                  Frete: {shippingState.quote.label}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Entrega estimada em {shipping.days}.
+                  Entrega em {shippingState.quote.days}
+                  {shippingState.quote.source === 'fallback' && ' · estimativa'}
                 </p>
               </div>
               <span className="font-display text-lg font-semibold text-primary">
-                {shipping.costFormatted}
+                {shippingState.quote.costFormatted}
               </span>
             </div>
-          ) : values.shippingAddress?.cep && shipping && !shipping.ok ? (
-            <p className="text-xs text-destructive">{shipping.error}</p>
+          ) : shippingState.error ? (
+            <p className="text-xs text-destructive">{shippingState.error}</p>
           ) : (
             <p className="text-xs text-muted-foreground">
               Digite o CEP para calcular o frete (sai de Porto Alegre).
