@@ -27,9 +27,17 @@ import { ThemePicker } from '@/components/forms/ThemePicker'
 import { CoverUploader } from '@/components/forms/CoverUploader'
 import { MomentsUploader } from '@/components/forms/MomentsUploader'
 import { PhysicalPhotoCard } from '@/components/forms/PhysicalPhotoCard'
+import { PreviewModal } from '@/components/forms/PreviewModal'
 import { TEMPLATES } from '@/constants/templates'
 import { LIMITS } from '@/lib/validators'
 import { SuccessScreen } from '@/components/shared/SuccessScreen'
+import { useShippingQuote } from '@/hooks/useShippingQuote'
+import {
+  BASE_PRICE_CENTS,
+  WITH_PHOTO_PRICE_CENTS,
+  computeAmountCents,
+  formatBRL,
+} from '@/constants/pricing'
 
 const INITIAL = {
   title: '',
@@ -78,6 +86,9 @@ export function CreateLetterForm() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(null)
   const [result, setResult] = useState(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
+  const shippingState = useShippingQuote(values.shippingAddress?.cep)
 
   useEffect(() => {
     if (!templateId) return
@@ -102,7 +113,7 @@ export function CreateLetterForm() {
   }
 
   async function submit(e) {
-    e.preventDefault()
+    e?.preventDefault?.()
     setSubmitting(true)
     setSubmitError(null)
     setErrors({})
@@ -116,9 +127,19 @@ export function CreateLetterForm() {
       if (!res.ok) {
         if (json?.errors) setErrors(json.errors)
         setSubmitError(json?.error || 'Não consegui criar a carta. Tente de novo.')
+        setPreviewOpen(false)
         return
       }
+      // Pagamento direto: redireciona pro checkout do AbacatePay.
+      // Quem volta cai em /c/:slug?paid=1 (handleado pelo viewer + webhook).
+      if (json.paymentUrl) {
+        window.location.href = json.paymentUrl
+        return
+      }
+      // Sem URL de pagamento (AbacatePay não configurado / falhou): mostra tela
+      // de sucesso com aviso de pagamento pendente.
       setResult(json)
+      setPreviewOpen(false)
     } catch {
       setSubmitError('Erro de rede. Verifique sua conexão.')
     } finally {
@@ -126,12 +147,32 @@ export function CreateLetterForm() {
     }
   }
 
+  function openPreview() {
+    if (!values.title?.trim() || values.title.trim().length < 2) {
+      setErrors((e) => ({ ...e, title: 'Dê um título para a carta.' }))
+      return
+    }
+    if (!values.content?.trim() || values.content.trim().length < 10) {
+      setErrors((e) => ({ ...e, content: 'A mensagem precisa de pelo menos 10 caracteres.' }))
+      return
+    }
+    setSubmitError(null)
+    setPreviewOpen(true)
+  }
+
+  const photoEnabled = !!values.physicalPhotoEnabled
+  const previewTotal = computeAmountCents({
+    physicalPhotoEnabled: photoEnabled,
+    shippingCostCents: photoEnabled && shippingState.quote?.cost ? shippingState.quote.cost : 0,
+  })
+
   if (result) {
     return (
       <SuccessScreen
         slug={result.slug}
         editToken={result.editToken}
         physicalOrder={result.physicalOrder}
+        paymentPending={!result.paymentUrl}
         onReset={() => {
           setValues(INITIAL)
           setResult(null)
@@ -420,7 +461,12 @@ export function CreateLetterForm() {
 
       {/* STEP 5 — Foto física */}
       <Step number="05" icon={Package} label="Foto física">
-        <PhysicalPhotoCard values={values} update={update} errors={errors} />
+        <PhysicalPhotoCard
+          values={values}
+          update={update}
+          errors={errors}
+          shippingState={shippingState}
+        />
       </Step>
 
       {submitError && (
@@ -436,27 +482,39 @@ export function CreateLetterForm() {
       {/* Submit — sticky em mobile com fade, relative em desktop */}
       <div className="sticky bottom-0 z-20 -mx-6 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-4 pt-8 sm:relative sm:bottom-auto sm:mx-0 sm:bg-none sm:p-0">
         <Button
-          type="submit"
+          type="button"
           size="lg"
           disabled={submitting}
+          onClick={openPreview}
           className="group w-full rounded-full shadow-soft transition-all hover:shadow-glow disabled:hover:shadow-soft"
         >
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Criando sua carta…</span>
+              <span>Gerando pagamento…</span>
             </>
           ) : (
             <>
               <MailPlus className="h-4 w-4 transition-transform group-hover:rotate-[-6deg]" />
-              <span>Gerar carta e link</span>
+              <span>Ver preview e pagar {formatBRL(previewTotal)}</span>
             </>
           )}
         </Button>
         <p className="mt-3 text-center text-xs text-muted-foreground sm:mt-4">
-          Sem cadastro · Sem cartão · Edita depois com o token secreto
+          {photoEnabled
+            ? `${formatBRL(WITH_PHOTO_PRICE_CENTS)} + frete · pagamento via PIX`
+            : `${formatBRL(BASE_PRICE_CENTS)} · pagamento via PIX · sem cadastro`}
         </p>
       </div>
+
+      <PreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        values={values}
+        shippingQuote={shippingState.quote}
+        submitting={submitting}
+        onConfirm={submit}
+      />
     </form>
   )
 }
